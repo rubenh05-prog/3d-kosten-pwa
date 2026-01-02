@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>3D-Druck Kosten Rechner</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffcc00">
+
+<!-- iOS PWA -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="3D Kosten">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 24px 12px;
+}
+
+.container {
+    background: #ffffff;
+    padding: 25px 35px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border-top: 6px solid #ffcc00;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+}
+
+label {
+    font-weight: bold;
+    min-width: 180px;
+}
+
+input {
+    width: 130px;
+    padding: 6px;
+    font-size: 16px;
+    border-radius: 6px;
+}
+
+.time-inputs {
+    display: flex;
+    gap: 6px;
+}
+
+.time-inputs input {
+    width: 60px;
+}
+
+/* Accordion Results */
+.results {
+    margin-top: 20px;
+    padding: 0 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border-top: 2px solid #000;
+
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(8px);
+
+    transition:
+        max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.25s ease,
+        transform 0.25s ease;
+}
+
+.results.open {
+    max-height: 320px;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.results div {
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+#gesamtKosten {
+    font-size: 1.4em;
+    color: #c48b00;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<ul>
+    <li>
+        <label>Filament Preis €/kg</label>
+        <input id="plaPreis" type="number" min="0" step="0.25" value="22">
+    </li>
+
+    <li>
+        <label>Leistung (W)</label>
+        <input id="leistung" type="number" min="0" step="10" value="170">
+    </li>
+
+    <li>
+        <label>Strompreis €/kWh</label>
+        <input id="strompreis" type="number" min="0" step="0.01" value="0.30">
+    </li>
+
+    <li>
+        <label>Verschleiß €/h</label>
+        <input id="verschleiss" type="number" min="0" step="0.01" value="0.07">
+    </li>
+
+    <li>
+        <label>Druckzeit</label>
+        <div class="time-inputs">
+            <input id="druckzeitStunden" type="number" min="0" max="48" placeholder="Std">
+            <input id="druckzeitMinuten" type="number" placeholder="Min">
+        </div>
+    </li>
+
+    <li>
+        <label>Material (g)</label>
+        <input id="material" type="number" min="0" step="5">
+    </li>
+</ul>
+
+<div class="results" id="results">
+    <div>Materialkosten: <span id="materialKosten">0.00</span> €</div>
+    <div>Stromkosten: <span id="stromKosten">0.00</span> €</div>
+    <div>Verschleißkosten: <span id="verschleissKosten">0.00</span> €</div>
+    <div>Gesamtkosten: <span id="gesamtKosten">0.00</span> €</div>
+</div>
+</div>
+
+<script>
+const ROUND_TO = 0.1;
+const inputs = document.querySelectorAll("input");
+const resultsDiv = document.getElementById("results");
+
+inputs.forEach(input => {
+    input.addEventListener("input", handleInput);
+});
+
+function getNumber(id) {
+    return parseFloat(document.getElementById(id).value) || 0;
+}
+
+function handleInput(e) {
+    sanitizeInput(e.target);
+    calculate();
+}
+
+function sanitizeInput(input) {
+    let value = parseFloat(input.value);
+    if (isNaN(value)) value = 0;
+
+    const stundenInput = document.getElementById("druckzeitStunden");
+    let stunden = getNumber("druckzeitStunden");
+
+    if (["plaPreis", "strompreis", "verschleiss"].includes(input.id)) {
+        input.value = Math.max(0, Math.round(value * 100) / 100);
+        return;
+    }
+
+    value = Math.floor(value);
+
+    if (input.id === "druckzeitMinuten") {
+        while (value >= 60) {
+            value -= 60;
+            stunden++;
+        }
+        while (value < 0) {
+            value += 60;
+            stunden--;
+        }
+        stunden = Math.min(48, Math.max(0, stunden));
+        stundenInput.value = stunden;
+        input.value = value;
+        return;
+    }
+
+    if (input.id === "druckzeitStunden") {
+        input.value = Math.min(48, Math.max(0, value));
+        return;
+    }
+
+    input.value = Math.max(0, value);
+}
+
+function calculate() {
+    const plaPreis = getNumber("plaPreis");
+    const leistung = getNumber("leistung");
+    const strompreis = getNumber("strompreis");
+    const verschleiss = getNumber("verschleiss");
+    const material = getNumber("material");
+    const stunden = getNumber("druckzeitStunden");
+    const minuten = getNumber("druckzeitMinuten");
+
+    const gesamtMinuten = stunden * 60 + minuten;
+
+    if (
+        plaPreis <= 0 ||
+        leistung <= 0 ||
+        strompreis <= 0 ||
+        verschleiss <= 0 ||
+        material <= 0 ||
+        gesamtMinuten <= 5
+    ) {
+        resultsDiv.classList.remove("open");
+        return;
+    }
+
+    const druckzeit = gesamtMinuten / 60;
+    const materialKosten = (material / 1000) * plaPreis;
+    const stromKosten = (leistung / 1000) * druckzeit * strompreis;
+    const verschleissKosten = druckzeit * verschleiss;
+
+    const gesamtKostenRaw = materialKosten + stromKosten + verschleissKosten;
+    const gesamtKosten = Math.ceil(gesamtKostenRaw / ROUND_TO) * ROUND_TO;
+
+    document.getElementById("materialKosten").textContent = materialKosten.toFixed(2);
+    document.getElementById("stromKosten").textContent = stromKosten.toFixed(2);
+    document.getElementById("verschleissKosten").textContent = verschleissKosten.toFixed(2);
+    document.getElementById("gesamtKosten").textContent = gesamtKosten.toFixed(2);
+
+    resultsDiv.classList.add("open");
+}
+
+/* Service Worker */
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+		.then(() => console.log("Service Worker registriert"))
+        .catch(err => console.error("Service Worker Fehler:", err));
+}
+</script>
+
+</body>
+</html>
