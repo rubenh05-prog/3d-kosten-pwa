@@ -6,13 +6,11 @@
 
 <title>3D-Druck Kosten Rechner</title>
 
-<!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffcc00" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
 
-<!-- iOS PWA -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="3D Kosten">
@@ -20,12 +18,12 @@
 <link rel="icon" href="icon-192.png" sizes="192x192">
 
 <style>
-/* ===== Farben & Dark Mode ===== */
+/* ===== Farbvariablen & Dark Mode ===== */
 :root {
     --bg: #f4f4f4;
     --card: #ffffff;
-    --text: #000000;
-    --border: #000000;
+    --text: #000;
+    --border: #000;
     --accent: #ffcc00;
 }
 
@@ -34,13 +32,11 @@
         --bg: #121212;
         --card: #1e1e1e;
         --text: #f1f1f1;
-        --border: #333333;
+        --border: #333;
     }
 }
 
-html {
-    background: var(--bg);
-}
+html { background: var(--bg); }
 
 body {
     font-family: Arial, sans-serif;
@@ -49,7 +45,7 @@ body {
 
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
 
     min-height: 100vh;
     margin: 0;
@@ -58,89 +54,97 @@ body {
         calc(16px + env(safe-area-inset-right))
         calc(16px + env(safe-area-inset-bottom))
         calc(16px + env(safe-area-inset-left));
-    box-sizing: border-box;
 }
 
+/* ===== Container ===== */
 .container {
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
+    gap: 14px;
 }
 
-/* ===== Eingabe-Box ===== */
+/* ===== Eingabe-Card ===== */
 .top-section {
     background: var(--card);
-    padding: 22px;
-    border-radius: 10px;
+    padding: 18px;
+    border-radius: 12px;
     width: 100%;
-    max-width: 420px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    max-width: 360px;
     border-top: 6px solid var(--accent);
 }
 
+/* Liste */
 ul { list-style: none; padding: 0; margin: 0; }
+
 li {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
-    gap: 10px;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
 }
 
+/* Labels */
 label {
-    font-weight: bold;
-    min-width: 190px;
+    font-weight: 600;
+    min-width: 145px;
+    line-height: 1.3;
 }
 
+/* Inputs – mobile UX */
 input {
-    width: 130px;
-    padding: 6px;
+    width: 110px;
+    padding: 10px 8px;          /* 🔑 größere Touch-Zone */
     font-size: 16px;
-    border-radius: 6px;
+    border-radius: 8px;
     background: var(--card);
     color: var(--text);
     border: 1px solid var(--border);
 }
 
+/* Zeit */
 .time-inputs {
     display: flex;
     gap: 6px;
 }
 
 .time-inputs input {
-    width: 60px;
+    width: 52px;
+    text-align: center;
 }
 
-/* ===== Ergebnis-Box ===== */
+/* ===== Ergebnis-Card ===== */
 .bottom-section {
-    margin-top: 15px;
+    position: sticky;          /* 🔑 bleibt sichtbar */
+    bottom: calc(12px + env(safe-area-inset-bottom));
+
     width: 100%;
-    max-width: 420px;
+    max-width: 360px;
     background: var(--card);
-    border-radius: 10px;
+    border-radius: 12px;
     border-top: 2px solid var(--border);
-    min-height: 150px;
+    min-height: 130px;
+
     opacity: 0;
-    transition: opacity 0.4s ease;
+    transition: opacity 0.3s ease;
 }
 
-.bottom-section.visible {
-    opacity: 1;
-}
+.bottom-section.visible { opacity: 1; }
 
 .results-content {
+    padding: 14px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 15px;
-    gap: 8px;
+    gap: 6px;
 }
 
 .results-content div {
     opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(10px);
+    transition: all 0.25s ease;
 }
 
 .results-content div.visible {
@@ -150,42 +154,16 @@ input {
 
 .results-footer {
     font-size: 1.4em;
-    color: var(--accent);
     font-weight: bold;
+    color: var(--accent);
     text-align: center;
-    padding-bottom: 15px;
+    padding-bottom: 12px;
 }
 
-/* ===== Mobile-Feinschliff ===== */
-@media (max-width: 480px) {
-    .top-section {
-        max-width: 360px;
-        padding: 18px;
-    }
-
-    label {
-        min-width: 150px;
-    }
-
-    input {
-        width: 115px;
-    }
-
-    .time-inputs {
-        gap: 4px;
-    }
-}
-
-@media (max-width: 380px) {
-    label {
-        min-width: 140px;
-        font-size: 14px;
-    }
-
-    input {
-        width: 105px;
-        font-size: 15px;
-    }
+/* ===== Ultra kleine Geräte ===== */
+@media (max-width: 360px) {
+    label { min-width: 130px; }
+    input { width: 100px; }
 }
 </style>
 </head>
@@ -196,29 +174,29 @@ input {
 
 <div class="top-section">
 <ul>
-    <li><label>Filament Preis €/kg</label><input id="plaPreis" type="number" step="0.25" value="22.5"></li>
-    <li><label>Leistung (W)</label><input id="leistung" type="number" step="10" value="130"></li>
-    <li><label>Strompreis €/kWh</label><input id="strompreis" type="number" step="0.01" value="0.33"></li>
-    <li><label>Verschleiß €/h</label><input id="verschleiss" type="number" step="0.01" value="0.08"></li>
+    <li><label>Filament €/kg</label><input id="plaPreis" type="number" step="0.25" value="22.5" inputmode="decimal"></li>
+    <li><label>Leistung (W)</label><input id="leistung" type="number" step="10" value="130" inputmode="numeric"></li>
+    <li><label>Strom €/kWh</label><input id="strompreis" type="number" step="0.01" value="0.33" inputmode="decimal"></li>
+    <li><label>Verschleiß €/h</label><input id="verschleiss" type="number" step="0.01" value="0.08" inputmode="decimal"></li>
     <li>
         <label>Druckzeit</label>
         <div class="time-inputs">
-            <input id="druckzeitStunden" type="number" placeholder="Std">
-            <input id="druckzeitMinuten" type="number" placeholder="Min">
+            <input id="druckzeitStunden" type="number" placeholder="h" inputmode="numeric">
+            <input id="druckzeitMinuten" type="number" placeholder="min" inputmode="numeric">
         </div>
     </li>
-    <li><label>Material (g)</label><input id="material" type="number" step="5"></li>
+    <li><label>Material (g)</label><input id="material" type="number" step="5" inputmode="numeric"></li>
 </ul>
 </div>
 
 <div class="bottom-section" id="results">
     <div class="results-content">
-        <div>Materialkosten: <span id="materialKosten">0.00</span> €</div>
-        <div>Stromkosten: <span id="stromKosten">0.00</span> €</div>
-        <div>Verschleißkosten: <span id="verschleissKosten">0.00</span> €</div>
+        <div>Material: <span id="materialKosten">0.00</span> €</div>
+        <div>Strom: <span id="stromKosten">0.00</span> €</div>
+        <div>Verschleiß: <span id="verschleissKosten">0.00</span> €</div>
     </div>
     <div class="results-footer">
-        Gesamtkosten: <span id="gesamtKosten">0.00</span> €
+        Gesamt: <span id="gesamtKosten">0.00</span> €
     </div>
 </div>
 
@@ -228,72 +206,62 @@ input {
 const ROUND_TO = 0.1;
 const inputs = document.querySelectorAll("input");
 const resultsDiv = document.getElementById("results");
-const resultRows = document.querySelectorAll(".results-content div");
+const rows = document.querySelectorAll(".results-content div");
 
 inputs.forEach(i => i.addEventListener("input", handleInput));
 
-function handleInput(e) {
+function handleInput(e){
     sanitizeTime(e.target);
     calculate();
 }
 
-function sanitizeTime(input) {
-    const hInput = document.getElementById("druckzeitStunden");
-    const mInput = document.getElementById("druckzeitMinuten");
+function sanitizeTime(input){
+    const hI = druckzeitStunden;
+    const mI = druckzeitMinuten;
+    let h = parseInt(hI.value) || 0;
+    let m = parseInt(mI.value) || 0;
 
-    let h = parseInt(hInput.value) || 0;
-    let m = parseInt(mInput.value) || 0;
-
-    if (input.id === "druckzeitMinuten") {
-        while (m >= 60) { m -= 60; h++; }
-        while (m < 0) { m += 60; h--; }
+    if(input.id==="druckzeitMinuten"){
+        while(m>=60){m-=60;h++;}
+        while(m<0){m+=60;h--;}
     }
 
-    h = Math.min(48, Math.max(0, h));
-    m = Math.min(59, Math.max(0, m));
+    h = Math.min(48, Math.max(0,h));
+    m = Math.min(59, Math.max(0,m));
 
-    hInput.value = h;
-    mInput.value = m;
+    hI.value = h;
+    mI.value = m;
 }
 
-function get(id) {
-    return parseFloat(document.getElementById(id).value) || 0;
-}
+function get(id){return parseFloat(document.getElementById(id).value)||0;}
 
-function calculate() {
-    const zeit =
-        (parseInt(druckzeitStunden.value) || 0) * 60 +
-        (parseInt(druckzeitMinuten.value) || 0);
+function calculate(){
+    const zeit = (druckzeitStunden.value*60)+(druckzeitMinuten.value*1);
+    const pla=get("plaPreis"), watt=get("leistung"), strom=get("strompreis"),
+          versch=get("verschleiss"), mat=get("material");
 
-    const pla = get("plaPreis");
-    const watt = get("leistung");
-    const strom = get("strompreis");
-    const versch = get("verschleiss");
-    const mat = get("material");
-
-    if (pla<=0||watt<=0||strom<=0||versch<=0||mat<=0||zeit<=5) {
+    if(pla<=0||watt<=0||strom<=0||versch<=0||mat<=0||zeit<=5){
         resultsDiv.classList.remove("visible");
-        resultRows.forEach(r=>r.classList.remove("visible"));
+        rows.forEach(r=>r.classList.remove("visible"));
         return;
     }
 
-    const h = zeit / 60;
-    const mk = (mat / 1000) * pla;
-    const sk = (watt / 1000) * h * strom;
-    const vk = h * versch;
-    const ges = Math.ceil((mk + sk + vk) / ROUND_TO) * ROUND_TO;
+    const h=zeit/60;
+    const mk=(mat/1000)*pla;
+    const sk=(watt/1000)*h*strom;
+    const vk=h*versch;
+    const ges=Math.ceil((mk+sk+vk)/ROUND_TO)*ROUND_TO;
 
-    materialKosten.textContent = mk.toFixed(2);
-    stromKosten.textContent = sk.toFixed(2);
-    verschleissKosten.textContent = vk.toFixed(2);
-    gesamtKosten.textContent = ges.toFixed(2);
+    materialKosten.textContent=mk.toFixed(2);
+    stromKosten.textContent=sk.toFixed(2);
+    verschleissKosten.textContent=vk.toFixed(2);
+    gesamtKosten.textContent=ges.toFixed(2);
 
     resultsDiv.classList.add("visible");
-    resultRows.forEach((r,i)=>setTimeout(()=>r.classList.add("visible"), i*100));
+    rows.forEach((r,i)=>setTimeout(()=>r.classList.add("visible"),i*80));
 }
 
-/* Service Worker */
-if ("serviceWorker" in navigator) {
+if("serviceWorker" in navigator){
     navigator.serviceWorker.register("service-worker.js");
 }
 </script>
