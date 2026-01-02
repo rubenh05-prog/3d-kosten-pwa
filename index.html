@@ -11,307 +11,232 @@
 <meta name="theme-color" content="#ffcc00" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
 
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="3D Kosten">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="icon" href="icon-192.png" sizes="192x192">
-
 <style>
-:root {
-    --bg: #f4f4f4;
-    --card: #ffffff;
-    --text: #000;
-    --border: #000;
-    --accent: #ffcc00;
-    --muted: #666;
+:root{
+  --bg:#f4f4f4;--card:#fff;--text:#000;--border:#000;
+  --accent:#ffcc00;--muted:#666;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#121212;--card:#1e1e1e;--text:#f1f1f1;--border:#333;--muted:#aaa;}
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg: #121212;
-        --card: #1e1e1e;
-        --text: #f1f1f1;
-        --border: #333;
-        --muted: #aaa;
-    }
+body{
+  margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text);
+  display:flex;justify-content:center;min-height:100vh;padding:16px;
 }
 
-html { background: var(--bg); }
+.container{width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px;}
 
-body {
-    font-family: Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    margin: 0;
-    padding:
-        calc(16px + env(safe-area-inset-top))
-        calc(16px + env(safe-area-inset-right))
-        calc(16px + env(safe-area-inset-bottom))
-        calc(16px + env(safe-area-inset-left));
+.top-section{
+  background:var(--card);border-radius:12px;padding:18px;
+  border-top:6px solid var(--accent);
+}
+ul{list-style:none;padding:0;margin:0;}
+li{display:flex;justify-content:space-between;gap:8px;margin-bottom:10px;}
+label{font-weight:600;min-width:145px;}
+input{
+  width:110px;padding:10px;border-radius:8px;
+  border:1px solid var(--border);background:var(--card);color:var(--text);
 }
 
-.container {
-    width: 100%;
-    max-width: 360px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
+.time-inputs{display:flex;gap:6px;}
+.time-inputs input{width:52px;text-align:center;}
+
+.bottom-section{
+  background:var(--card);border-radius:12px;border-top:2px solid var(--border);
+  opacity:0;transition:.3s;position:sticky;bottom:12px;
 }
+.bottom-section.visible{opacity:1;}
 
-/* Eingaben */
-.top-section {
-    background: var(--card);
-    padding: 18px;
-    border-radius: 12px;
-    border-top: 6px solid var(--accent);
+.results-content{padding:14px;display:flex;flex-direction:column;gap:6px;align-items:center;}
+.results-footer{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:1.4em;font-weight:bold;color:var(--accent);padding-bottom:12px;
 }
+.details-btn{font-size:.7em;color:var(--muted);cursor:pointer;}
 
-ul { list-style: none; padding: 0; margin: 0; }
-
-li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
+/* ===== Overlay ===== */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.4);
+  display:none;align-items:flex-end;z-index:20;
 }
+.overlay.show{display:flex;}
 
-label {
-    font-weight: 600;
-    min-width: 145px;
+.sheet{
+  width:100%;max-width:420px;margin:auto;
+  background:var(--card);border-radius:16px 16px 0 0;
+  padding:18px;
+  transform:translateY(100%);
+  animation:slideUp .25s ease forwards;
 }
+@keyframes slideUp{to{transform:translateY(0);}}
 
-input {
-    width: 110px;
-    padding: 10px 8px;
-    font-size: 16px;
-    border-radius: 8px;
-    background: var(--card);
-    color: var(--text);
-    border: 1px solid var(--border);
+.sheet h3{margin:0 0 12px;font-size:1em;text-align:center;}
+.sheet ul{list-style:none;padding:0;margin:0;}
+.sheet li{
+  display:flex;justify-content:space-between;
+  padding:8px 0;border-bottom:1px solid var(--border);
 }
+.sheet li:last-child{border:none;}
+.sheet span{color:var(--muted);}
 
-.time-inputs {
-    display: flex;
-    gap: 6px;
+/* ===== Mini-Balken ===== */
+.bar-wrap{margin-top:14px;display:none;}
+.bar-row{margin-bottom:10px;}
+.bar-label{
+  font-size:0.75em;color:var(--muted);
+  display:flex;justify-content:space-between;
 }
-
-.time-inputs input {
-    width: 52px;
-    text-align: center;
+.bar-bg{
+  width:100%;height:8px;border-radius:6px;
+  background:rgba(0,0,0,0.08);overflow:hidden;
 }
-
-/* Ergebnisse */
-.bottom-section {
-    position: sticky;
-    bottom: calc(12px + env(safe-area-inset-bottom));
-    background: var(--card);
-    border-radius: 12px;
-    border-top: 2px solid var(--border);
-    min-height: 130px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+.bar{
+  height:100%;width:0%;border-radius:6px;
+  transition:width .3s ease;
 }
-
-.bottom-section.visible { opacity: 1; }
-
-.results-content {
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-}
-
-.results-content div {
-    opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.25s ease;
-}
-
-.results-content div.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Footer + Info */
-.results-footer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-    font-size: 1.4em;
-    font-weight: bold;
-    color: var(--accent);
-    padding-bottom: 12px;
-}
-
-.info-wrapper {
-    position: relative;
-}
-
-.info-icon {
-    font-size: 0.8em;
-    cursor: pointer;
-    color: var(--muted);
-    user-select: none;
-}
-
-/* Info Tooltip – animiert */
-.info-box {
-    position: absolute;
-    bottom: 140%;
-    left: 50%;
-    transform: translateX(-50%) translateY(6px) scale(0.96);
-    background: var(--card);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px;
-    width: 240px;
-    font-size: 0.75em;
-    line-height: 1.4;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.18s ease, transform 0.18s ease;
-    z-index: 10;
-}
-
-.info-box.visible {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
-    pointer-events: auto;
+.bar.material{background:#ffcc00;}
+.bar.power{background:#888;}
+.bar.total{background:#4caf50;}
+@media(prefers-color-scheme:dark){
+  .bar-bg{background:rgba(255,255,255,0.15);}
+  .bar.power{background:#bbb;}
 }
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
 <div class="top-section">
 <ul>
-    <li><label>Filament €/kg</label><input id="plaPreis" type="number" step="0.25" value="22.5"></li>
-    <li><label>Leistung (W)</label><input id="leistung" type="number" step="10" value="130"></li>
-    <li><label>Strom €/kWh</label><input id="strompreis" type="number" step="0.01" value="0.33"></li>
-    <li><label>Verschleiß €/h</label><input id="verschleiss" type="number" step="0.01" value="0.08"></li>
-    <li>
-        <label>Druckzeit</label>
-        <div class="time-inputs">
-            <input id="druckzeitStunden" type="number" placeholder="h">
-            <input id="druckzeitMinuten" type="number" placeholder="min">
-        </div>
-    </li>
-    <li><label>Material (g)</label><input id="material" type="number" step="5"></li>
+<li><label>Filament €/kg</label><input id="plaPreis" type="number" value="22.5"></li>
+<li><label>Leistung (W)</label><input id="leistung" type="number" value="130"></li>
+<li><label>Strom €/kWh</label><input id="strompreis" type="number" value="0.33"></li>
+<li><label>Verschleiß €/h</label><input id="verschleiss" type="number" value="0.08"></li>
+<li>
+<label>Druckzeit</label>
+<div class="time-inputs">
+<input id="druckzeitStunden" type="number" placeholder="h">
+<input id="druckzeitMinuten" type="number" placeholder="min">
+</div>
+</li>
+<li><label>Material (g)</label><input id="material" type="number"></li>
 </ul>
 </div>
 
 <div class="bottom-section" id="results">
-    <div class="results-content">
-        <div>Material: <span id="materialKosten">0.00</span> €</div>
-        <div>Strom: <span id="stromKosten">0.00</span> €</div>
-        <div>Verschleiß: <span id="verschleissKosten">0.00</span> €</div>
-    </div>
-
-    <div class="results-footer">
-        Gesamt: <span id="gesamtKosten">0.00</span> €
-        <div class="info-wrapper" id="infoWrapper">
-            <span class="info-icon" id="infoIcon">ℹ️</span>
-            <div class="info-box" id="infoBox">
-                Die Berechnung dient ausschließlich zur überschlägigen Ermittlung
-                der laufenden Unterhaltskosten eines 3D-Drucks und stellt keine
-                Preis-, Gewinn- oder Angebotskalkulation dar.
-            </div>
-        </div>
-    </div>
+<div class="results-content">
+<div>Material: <span id="materialKosten">0.00</span> €</div>
+<div>Strom: <span id="stromKosten">0.00</span> €</div>
+<div>Verschleiß: <span id="verschleissKosten">0.00</span> €</div>
 </div>
 
+<div class="results-footer">
+Gesamt: <span id="gesamtKosten">0.00</span> €
+<span class="details-btn" id="openDetails">ⓘ Details</span>
+</div>
+</div>
+
+</div>
+
+<!-- Extra Fenster -->
+<div class="overlay" id="overlay">
+<div class="sheet">
+<h3>Weitere Kennzahlen</h3>
+
+<ul>
+<li><span>Maschinenstundensatz</span><strong><span id="rateHour">–</span> €/h</strong></li>
+<li><span>Materialanteil</span><strong><span id="matPercent">–</span> %</strong></li>
+<li><span>Kosten pro Gramm</span><strong><span id="costGram">–</span> €/g</strong></li>
+</ul>
+
+<div class="bar-wrap" id="barWrap">
+  <div class="bar-row">
+    <div class="bar-label">
+      <span>Material vs. Strom</span><span id="msDiff">≥ 30 %</span>
+    </div>
+    <div class="bar-bg">
+      <div class="bar material" id="barMaterial"></div>
+      <div class="bar power" id="barPower"></div>
+    </div>
+  </div>
+
+  <div class="bar-row">
+    <div class="bar-label">
+      <span>Material vs. Gesamt</span><span id="mgPercent">– %</span>
+    </div>
+    <div class="bar-bg">
+      <div class="bar total" id="barTotal"></div>
+    </div>
+  </div>
+</div>
+
+</div>
 </div>
 
 <script>
-/* Info-Icon Verhalten */
-const infoIcon = document.getElementById("infoIcon");
-const infoBox = document.getElementById("infoBox");
-const infoWrapper = document.getElementById("infoWrapper");
+const ROUND_TO=.1;
+const results=document.getElementById("results");
+const overlay=document.getElementById("overlay");
+openDetails.onclick=()=>overlay.classList.add("show");
+overlay.onclick=e=>{if(e.target===overlay)overlay.classList.remove("show");}
+document.querySelectorAll("input").forEach(i=>i.oninput=calc);
 
-infoIcon.addEventListener("click", (e) => {
-    e.stopPropagation();
-    infoBox.classList.toggle("visible");
-});
+function g(id){return parseFloat(document.getElementById(id).value)||0;}
 
-document.addEventListener("click", (e) => {
-    if (!infoWrapper.contains(e.target)) {
-        infoBox.classList.remove("visible");
-    }
-});
+function calc(){
+ let h=g("druckzeitStunden"),m=g("druckzeitMinuten");
+ while(m>=60){m-=60;h++} while(m<0){m+=60;h--}
+ h=Math.min(48,Math.max(0,h)); m=Math.min(59,Math.max(0,m));
+ druckzeitStunden.value=h; druckzeitMinuten.value=m;
 
-/* Rechner-Logik */
-const ROUND_TO = 0.1;
-const inputs = document.querySelectorAll("input");
-const resultsDiv = document.getElementById("results");
-const rows = document.querySelectorAll(".results-content div");
+ const min=h*60+m;
+ const pla=g("plaPreis"),w=g("leistung"),s=g("strompreis"),
+       v=g("verschleiss"),mat=g("material");
+ if(pla<=0||w<=0||s<=0||v<=0||mat<=0||min<=5){
+   results.classList.remove("visible"); return;
+ }
 
-inputs.forEach(i => i.addEventListener("input", handleInput));
+ const hrs=min/60;
+ const mk=(mat/1000)*pla;
+ const sk=(w/1000)*hrs*s;
+ const vk=hrs*v;
+ const ges=Math.ceil((mk+sk+vk)/ROUND_TO)*ROUND_TO;
 
-function handleInput(e){
-    sanitizeTime(e.target);
-    calculate();
+ materialKosten.textContent=mk.toFixed(2);
+ stromKosten.textContent=sk.toFixed(2);
+ verschleissKosten.textContent=vk.toFixed(2);
+ gesamtKosten.textContent=ges.toFixed(2);
+
+ rateHour.textContent=(ges/hrs).toFixed(2);
+ matPercent.textContent=((mk/ges)*100).toFixed(0);
+ costGram.textContent=(ges/mat).toFixed(3);
+
+ /* === Mini-Balken-Logik === */
+ const barWrap=document.getElementById("barWrap");
+ const diff=Math.abs(mk-sk)/Math.max(mk,sk);
+ const matShare=mk/ges;
+
+ if(diff>=0.3 || matShare>=0.3){
+   barWrap.style.display="block";
+
+   const max=Math.max(mk,sk);
+   barMaterial.style.width=(mk/max*100)+"%";
+   barPower.style.width=(sk/max*100)+"%";
+
+   barTotal.style.width=(matShare*100)+"%";
+   mgPercent.textContent=(matShare*100).toFixed(0)+" %";
+ }else{
+   barWrap.style.display="none";
+ }
+
+ results.classList.add("visible");
 }
 
-function sanitizeTime(input){
-    let h = parseInt(druckzeitStunden.value) || 0;
-    let m = parseInt(druckzeitMinuten.value) || 0;
-
-    if(input.id==="druckzeitMinuten"){
-        while(m>=60){m-=60;h++;}
-        while(m<0){m+=60;h--;}
-    }
-
-    h = Math.min(48, Math.max(0,h));
-    m = Math.min(59, Math.max(0,m));
-
-    druckzeitStunden.value = h;
-    druckzeitMinuten.value = m;
-}
-
-function get(id){return parseFloat(document.getElementById(id).value)||0;}
-
-function calculate(){
-    const zeit = (druckzeitStunden.value*60)+(druckzeitMinuten.value*1);
-    const pla=get("plaPreis"), watt=get("leistung"), strom=get("strompreis"),
-          versch=get("verschleiss"), mat=get("material");
-
-    if(pla<=0||watt<=0||strom<=0||versch<=0||mat<=0||zeit<=5){
-        resultsDiv.classList.remove("visible");
-        rows.forEach(r=>r.classList.remove("visible"));
-        return;
-    }
-
-    const h=zeit/60;
-    const mk=(mat/1000)*pla;
-    const sk=(watt/1000)*h*strom;
-    const vk=h*versch;
-    const ges=Math.ceil((mk+sk+vk)/ROUND_TO)*ROUND_TO;
-
-    materialKosten.textContent=mk.toFixed(2);
-    stromKosten.textContent=sk.toFixed(2);
-    verschleissKosten.textContent=vk.toFixed(2);
-    gesamtKosten.textContent=ges.toFixed(2);
-
-    resultsDiv.classList.add("visible");
-    rows.forEach((r,i)=>setTimeout(()=>r.classList.add("visible"),i*80));
-}
-
-if("serviceWorker" in navigator){
-    navigator.serviceWorker.register("service-worker.js");
+if("serviceWorker"in navigator){
+ navigator.serviceWorker.register("service-worker.js");
 }
 </script>
-
 </body>
 </html>
