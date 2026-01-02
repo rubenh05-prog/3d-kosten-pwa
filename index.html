@@ -24,6 +24,7 @@
     --text: #000;
     --border: #000;
     --accent: #ffcc00;
+    --muted: #666;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -32,6 +33,7 @@
         --card: #1e1e1e;
         --text: #f1f1f1;
         --border: #333;
+        --muted: #aaa;
     }
 }
 
@@ -41,11 +43,9 @@ body {
     font-family: Arial, sans-serif;
     background: var(--bg);
     color: var(--text);
-
     display: flex;
     justify-content: center;
     align-items: flex-start;
-
     min-height: 100vh;
     margin: 0;
     padding:
@@ -110,12 +110,10 @@ input {
 .bottom-section {
     position: sticky;
     bottom: calc(12px + env(safe-area-inset-bottom));
-
     background: var(--card);
     border-radius: 12px;
     border-top: 2px solid var(--border);
     min-height: 130px;
-
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -141,12 +139,54 @@ input {
     transform: translateY(0);
 }
 
+/* Footer + Info */
 .results-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
     font-size: 1.4em;
     font-weight: bold;
     color: var(--accent);
-    text-align: center;
     padding-bottom: 12px;
+}
+
+.info-wrapper {
+    position: relative;
+}
+
+.info-icon {
+    font-size: 0.8em;
+    cursor: pointer;
+    color: var(--muted);
+    user-select: none;
+}
+
+/* Info Tooltip – animiert */
+.info-box {
+    position: absolute;
+    bottom: 140%;
+    left: 50%;
+    transform: translateX(-50%) translateY(6px) scale(0.96);
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    width: 240px;
+    font-size: 0.75em;
+    line-height: 1.4;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 10;
+}
+
+.info-box.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+    pointer-events: auto;
 }
 </style>
 </head>
@@ -178,14 +218,40 @@ input {
         <div>Strom: <span id="stromKosten">0.00</span> €</div>
         <div>Verschleiß: <span id="verschleissKosten">0.00</span> €</div>
     </div>
+
     <div class="results-footer">
         Gesamt: <span id="gesamtKosten">0.00</span> €
+        <div class="info-wrapper" id="infoWrapper">
+            <span class="info-icon" id="infoIcon">ℹ️</span>
+            <div class="info-box" id="infoBox">
+                Die Berechnung dient ausschließlich zur überschlägigen Ermittlung
+                der laufenden Unterhaltskosten eines 3D-Drucks und stellt keine
+                Preis-, Gewinn- oder Angebotskalkulation dar.
+            </div>
+        </div>
     </div>
 </div>
 
 </div>
 
 <script>
+/* Info-Icon Verhalten */
+const infoIcon = document.getElementById("infoIcon");
+const infoBox = document.getElementById("infoBox");
+const infoWrapper = document.getElementById("infoWrapper");
+
+infoIcon.addEventListener("click", (e) => {
+    e.stopPropagation();
+    infoBox.classList.toggle("visible");
+});
+
+document.addEventListener("click", (e) => {
+    if (!infoWrapper.contains(e.target)) {
+        infoBox.classList.remove("visible");
+    }
+});
+
+/* Rechner-Logik */
 const ROUND_TO = 0.1;
 const inputs = document.querySelectorAll("input");
 const resultsDiv = document.getElementById("results");
