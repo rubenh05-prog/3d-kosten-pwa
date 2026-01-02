@@ -1,4 +1,4 @@
-const CACHE_NAME = "3d-druck-rechner-v1";
+const CACHE_NAME = "3d-druck-rechner-v2";
 
 // Dateien, die offline verfügbar sein sollen
 const FILES_TO_CACHE = [
@@ -25,3 +25,4 @@ self.addEventListener("fetch", event => {
     })
   );
 });
+
