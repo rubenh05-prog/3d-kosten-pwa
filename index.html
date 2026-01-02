@@ -8,8 +8,9 @@
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffcc00">
 <meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffcc00" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
 
 <!-- iOS PWA -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,7 +20,7 @@
 <link rel="icon" href="icon-192.png" sizes="192x192">
 
 <style>
-/* ---------- Farben & Dark Mode ---------- */
+/* ===== Farben & Dark Mode ===== */
 :root {
     --bg: #f4f4f4;
     --card: #ffffff;
@@ -34,7 +35,6 @@
         --card: #1e1e1e;
         --text: #f1f1f1;
         --border: #333333;
-        --accent: #ffcc00;
     }
 }
 
@@ -68,7 +68,7 @@ body {
     width: 100%;
 }
 
-/* ---------- Eingaben ---------- */
+/* ===== Eingabe-Box ===== */
 .top-section {
     background: var(--card);
     padding: 22px;
@@ -91,7 +91,6 @@ li {
 label {
     font-weight: bold;
     min-width: 190px;
-    color: var(--text);
 }
 
 input {
@@ -104,10 +103,16 @@ input {
     border: 1px solid var(--border);
 }
 
-.time-inputs { display: flex; gap: 6px; }
-.time-inputs input { width: 60px; }
+.time-inputs {
+    display: flex;
+    gap: 6px;
+}
 
-/* ---------- Ergebnisse ---------- */
+.time-inputs input {
+    width: 60px;
+}
+
+/* ===== Ergebnis-Box ===== */
 .bottom-section {
     margin-top: 15px;
     width: 100%;
@@ -120,7 +125,9 @@ input {
     transition: opacity 0.4s ease;
 }
 
-.bottom-section.visible { opacity: 1; }
+.bottom-section.visible {
+    opacity: 1;
+}
 
 .results-content {
     display: flex;
@@ -149,9 +156,36 @@ input {
     padding-bottom: 15px;
 }
 
+/* ===== Mobile-Feinschliff ===== */
+@media (max-width: 480px) {
+    .top-section {
+        max-width: 360px;
+        padding: 18px;
+    }
+
+    label {
+        min-width: 150px;
+    }
+
+    input {
+        width: 115px;
+    }
+
+    .time-inputs {
+        gap: 4px;
+    }
+}
+
 @media (max-width: 380px) {
-    label { min-width: 160px; font-size: 14px; }
-    input { width: 110px; font-size: 15px; }
+    label {
+        min-width: 140px;
+        font-size: 14px;
+    }
+
+    input {
+        width: 105px;
+        font-size: 15px;
+    }
 }
 </style>
 </head>
@@ -212,7 +246,7 @@ function sanitizeTime(input) {
 
     if (input.id === "druckzeitMinuten") {
         while (m >= 60) { m -= 60; h++; }
-        while (m < 0)   { m += 60; h--; }
+        while (m < 0) { m += 60; h--; }
     }
 
     h = Math.min(48, Math.max(0, h));
