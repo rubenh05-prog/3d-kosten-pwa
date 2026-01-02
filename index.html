@@ -24,7 +24,6 @@
     --text: #000;
     --border: #000;
     --accent: #ffcc00;
-    --muted: #666;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -33,7 +32,6 @@
         --card: #1e1e1e;
         --text: #f1f1f1;
         --border: #333;
-        --muted: #aaa;
     }
 }
 
@@ -150,41 +148,6 @@ input {
     text-align: center;
     padding-bottom: 12px;
 }
-
-/* Einklappbarer Info-Text */
-details.info {
-    background: var(--card);
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 0.85em;
-    color: var(--muted);
-}
-
-details.info summary {
-    cursor: pointer;
-    font-weight: 600;
-    color: var(--text);
-    list-style: none;
-}
-
-details.info summary::-webkit-details-marker {
-    display: none;
-}
-
-details.info summary::after {
-    content: "▾";
-    float: right;
-    transition: transform 0.2s ease;
-}
-
-details.info[open] summary::after {
-    transform: rotate(180deg);
-}
-
-details.info p {
-    margin: 8px 0 0;
-    line-height: 1.45;
-}
 </style>
 </head>
 
@@ -220,36 +183,9 @@ details.info p {
     </div>
 </div>
 
-<details class="info" id="infoBox">
-<summary>Berechnungsgrundlage</summary>
-<p>
-Die Gesamtkosten setzen sich aus Material-, Strom- und Verschleißkosten zusammen.
-Die Materialkosten basieren auf dem verwendeten Filamentgewicht und dem Preis pro Kilogramm.
-Die Stromkosten ergeben sich aus der Leistungsaufnahme des Druckers, der Druckzeit und dem Strompreis.
-Verschleißkosten werden zeitanteilig auf Basis der Druckdauer berücksichtigt.
-<br><br>
-Die Berechnung dient ausschließlich zur überschlägigen Ermittlung der laufenden Unterhaltskosten eines 3D-Drucks
-und stellt keine Preis-, Gewinn- oder Angebotskalkulation dar.
-<br><br>
-Die voreingestellten Werte sind geprüfte, praxisnahe Richtwerte und liegen bewusst leicht über dem Durchschnitt,
-um eine konservative Kostenschätzung zu ermöglichen.
-Für eine höhere Genauigkeit sollten die Werte an das jeweils verwendete System angepasst werden.
-</p>
-</details>
-
 </div>
 
 <script>
-/* Erklärungstext nur beim ersten Öffnen anzeigen */
-const infoBox = document.getElementById("infoBox");
-const INFO_KEY = "info_seen_v1";
-
-if (!localStorage.getItem(INFO_KEY)) {
-    infoBox.open = true;
-    localStorage.setItem(INFO_KEY, "true");
-}
-
-/* Rechner-Logik (unverändert) */
 const ROUND_TO = 0.1;
 const inputs = document.querySelectorAll("input");
 const resultsDiv = document.getElementById("results");
