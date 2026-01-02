@@ -194,18 +194,18 @@ details.info p {
 
 <div class="top-section">
 <ul>
-    <li><label>Filament €/kg</label><input id="plaPreis" type="number" step="0.25" value="22.5" inputmode="decimal"></li>
-    <li><label>Leistung (W)</label><input id="leistung" type="number" step="10" value="130" inputmode="numeric"></li>
-    <li><label>Strom €/kWh</label><input id="strompreis" type="number" step="0.01" value="0.33" inputmode="decimal"></li>
-    <li><label>Verschleiß €/h</label><input id="verschleiss" type="number" step="0.01" value="0.08" inputmode="decimal"></li>
+    <li><label>Filament €/kg</label><input id="plaPreis" type="number" step="0.25" value="22.5"></li>
+    <li><label>Leistung (W)</label><input id="leistung" type="number" step="10" value="130"></li>
+    <li><label>Strom €/kWh</label><input id="strompreis" type="number" step="0.01" value="0.33"></li>
+    <li><label>Verschleiß €/h</label><input id="verschleiss" type="number" step="0.01" value="0.08"></li>
     <li>
         <label>Druckzeit</label>
         <div class="time-inputs">
-            <input id="druckzeitStunden" type="number" placeholder="h" inputmode="numeric">
-            <input id="druckzeitMinuten" type="number" placeholder="min" inputmode="numeric">
+            <input id="druckzeitStunden" type="number" placeholder="h">
+            <input id="druckzeitMinuten" type="number" placeholder="min">
         </div>
     </li>
-    <li><label>Material (g)</label><input id="material" type="number" step="5" inputmode="numeric"></li>
+    <li><label>Material (g)</label><input id="material" type="number" step="5"></li>
 </ul>
 </div>
 
@@ -220,7 +220,7 @@ details.info p {
     </div>
 </div>
 
-<details class="info">
+<details class="info" id="infoBox">
 <summary>Berechnungsgrundlage</summary>
 <p>
 Die Gesamtkosten setzen sich aus Material-, Strom- und Verschleißkosten zusammen.
@@ -228,9 +228,11 @@ Die Materialkosten basieren auf dem verwendeten Filamentgewicht und dem Preis pr
 Die Stromkosten ergeben sich aus der Leistungsaufnahme des Druckers, der Druckzeit und dem Strompreis.
 Verschleißkosten werden zeitanteilig auf Basis der Druckdauer berücksichtigt.
 <br><br>
-Die Berechnung dient ausschließlich zur überschlägigen Ermittlung der laufenden Unterhaltskosten eines 3D-Drucks und stellt keine Preis-, Gewinn- oder Angebotskalkulation dar.
+Die Berechnung dient ausschließlich zur überschlägigen Ermittlung der laufenden Unterhaltskosten eines 3D-Drucks
+und stellt keine Preis-, Gewinn- oder Angebotskalkulation dar.
 <br><br>
-Die voreingestellten Werte sind geprüfte, praxisnahe Richtwerte und liegen bewusst leicht über dem Durchschnitt, um eine konservative Kostenschätzung zu ermöglichen.
+Die voreingestellten Werte sind geprüfte, praxisnahe Richtwerte und liegen bewusst leicht über dem Durchschnitt,
+um eine konservative Kostenschätzung zu ermöglichen.
 Für eine höhere Genauigkeit sollten die Werte an das jeweils verwendete System angepasst werden.
 </p>
 </details>
@@ -238,6 +240,16 @@ Für eine höhere Genauigkeit sollten die Werte an das jeweils verwendete System
 </div>
 
 <script>
+/* Erklärungstext nur beim ersten Öffnen anzeigen */
+const infoBox = document.getElementById("infoBox");
+const INFO_KEY = "info_seen_v1";
+
+if (!localStorage.getItem(INFO_KEY)) {
+    infoBox.open = true;
+    localStorage.setItem(INFO_KEY, "true");
+}
+
+/* Rechner-Logik (unverändert) */
 const ROUND_TO = 0.1;
 const inputs = document.querySelectorAll("input");
 const resultsDiv = document.getElementById("results");
