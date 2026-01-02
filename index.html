@@ -8,8 +8,6 @@
 
 <link rel="manifest" href="manifest.json">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffcc00" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
 
 <style>
 :root{
@@ -87,20 +85,27 @@ input{
   font-size:0.75em;color:var(--muted);
   display:flex;justify-content:space-between;
 }
+
 .bar-bg{
-  width:100%;height:8px;border-radius:6px;
-  background:rgba(0,0,0,0.08);overflow:hidden;
+  width:100%;height:18px;border-radius:9px;
+  background:rgba(0,0,0,0.08);
+  overflow:hidden;position:relative;
 }
+
 .bar{
-  height:100%;width:0%;border-radius:6px;
+  height:100%;width:0%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.7em;font-weight:bold;color:#000;
   transition:width .3s ease;
 }
+
 .bar.material{background:#ffcc00;}
-.bar.power{background:#888;}
-.bar.total{background:#4caf50;}
+.bar.power{background:#bbb;}
+.bar.total{background:#4caf50;color:#fff;}
+
 @media(prefers-color-scheme:dark){
   .bar-bg{background:rgba(255,255,255,0.15);}
-  .bar.power{background:#bbb;}
+  .bar.power{background:#999;}
 }
 </style>
 </head>
@@ -140,7 +145,6 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 
 </div>
 
-<!-- Extra Fenster -->
 <div class="overlay" id="overlay">
 <div class="sheet">
 <h3>Weitere Kennzahlen</h3>
@@ -154,7 +158,8 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 <div class="bar-wrap" id="barWrap">
   <div class="bar-row">
     <div class="bar-label">
-      <span>Material vs. Strom</span><span id="msDiff">≥ 30 %</span>
+      <span>Material vs. Strom</span>
+      <span id="msText"></span>
     </div>
     <div class="bar-bg">
       <div class="bar material" id="barMaterial"></div>
@@ -164,7 +169,8 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 
   <div class="bar-row">
     <div class="bar-label">
-      <span>Material vs. Gesamt</span><span id="mgPercent">– %</span>
+      <span>Material vs. Gesamt</span>
+      <span id="mgText"></span>
     </div>
     <div class="bar-bg">
       <div class="bar total" id="barTotal"></div>
@@ -196,47 +202,3 @@ function calc(){
        v=g("verschleiss"),mat=g("material");
  if(pla<=0||w<=0||s<=0||v<=0||mat<=0||min<=5){
    results.classList.remove("visible"); return;
- }
-
- const hrs=min/60;
- const mk=(mat/1000)*pla;
- const sk=(w/1000)*hrs*s;
- const vk=hrs*v;
- const ges=Math.ceil((mk+sk+vk)/ROUND_TO)*ROUND_TO;
-
- materialKosten.textContent=mk.toFixed(2);
- stromKosten.textContent=sk.toFixed(2);
- verschleissKosten.textContent=vk.toFixed(2);
- gesamtKosten.textContent=ges.toFixed(2);
-
- rateHour.textContent=(ges/hrs).toFixed(2);
- matPercent.textContent=((mk/ges)*100).toFixed(0);
- costGram.textContent=(ges/mat).toFixed(3);
-
- /* === Mini-Balken-Logik === */
- const barWrap=document.getElementById("barWrap");
- const diff=Math.abs(mk-sk)/Math.max(mk,sk);
- const matShare=mk/ges;
-
- if(diff>=0.3 || matShare>=0.3){
-   barWrap.style.display="block";
-
-   const max=Math.max(mk,sk);
-   barMaterial.style.width=(mk/max*100)+"%";
-   barPower.style.width=(sk/max*100)+"%";
-
-   barTotal.style.width=(matShare*100)+"%";
-   mgPercent.textContent=(matShare*100).toFixed(0)+" %";
- }else{
-   barWrap.style.display="none";
- }
-
- results.classList.add("visible");
-}
-
-if("serviceWorker"in navigator){
- navigator.serviceWorker.register("service-worker.js");
-}
-</script>
-</body>
-</html>
