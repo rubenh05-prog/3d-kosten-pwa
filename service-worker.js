@@ -1,5 +1,6 @@
-const CACHE_NAME = "3d-kosten-v3";
-const FILES = [
+const CACHE_NAME = "3d-kosten-v4";
+
+const FILES_TO_CACHE = [
   "./",
   "./index.html",
   "./manifest.json",
@@ -10,7 +11,7 @@ const FILES = [
 self.addEventListener("install", event => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES_TO_CACHE))
   );
 });
 
@@ -27,6 +28,6 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   event.respondWith(
-    caches.match(event.request).then(r => r || fetch(event.request))
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });
