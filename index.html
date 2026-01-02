@@ -65,7 +65,7 @@ body {
     gap: 14px;
 }
 
-/* ===== Eingaben ===== */
+/* Eingaben */
 .top-section {
     background: var(--card);
     padding: 18px;
@@ -108,7 +108,7 @@ input {
     text-align: center;
 }
 
-/* ===== Ergebnisse ===== */
+/* Ergebnisse */
 .bottom-section {
     position: sticky;
     bottom: calc(12px + env(safe-area-inset-bottom));
@@ -151,7 +151,7 @@ input {
     padding-bottom: 12px;
 }
 
-/* ===== Einklappbarer Info-Text ===== */
+/* Einklappbarer Info-Text */
 details.info {
     background: var(--card);
     border-radius: 10px;
@@ -223,13 +223,15 @@ details.info p {
 <details class="info">
 <summary>Berechnungsgrundlage</summary>
 <p>
-Die Gesamtkosten ergeben sich aus Material-, Strom- und Verschleißkosten.
-Materialkosten basieren auf Filamentgewicht und Preis pro Kilogramm.
-Stromkosten werden aus Leistungsaufnahme, Druckzeit und Strompreis berechnet.
-Verschleißkosten werden anteilig anhand der Druckdauer berücksichtigt.
-Die voreingestellten Werte dienen als praxisnahe Richtwerte.
-Sie wurden mehrfach geprüft und entsprechen typischen Standardwerten für gängige 3D-Druck-Setups.
-Für eine möglichst genaue Kalkulation sollten die Werte bei Bedarf an das eigene System angepasst werden.
+Die Gesamtkosten setzen sich aus Material-, Strom- und Verschleißkosten zusammen.
+Die Materialkosten basieren auf dem verwendeten Filamentgewicht und dem Preis pro Kilogramm.
+Die Stromkosten ergeben sich aus der Leistungsaufnahme des Druckers, der Druckzeit und dem Strompreis.
+Verschleißkosten werden zeitanteilig auf Basis der Druckdauer berücksichtigt.
+<br><br>
+Die Berechnung dient ausschließlich zur überschlägigen Ermittlung der laufenden Unterhaltskosten eines 3D-Drucks und stellt keine Preis-, Gewinn- oder Angebotskalkulation dar.
+<br><br>
+Die voreingestellten Werte sind geprüfte, praxisnahe Richtwerte und liegen bewusst leicht über dem Durchschnitt, um eine konservative Kostenschätzung zu ermöglichen.
+Für eine höhere Genauigkeit sollten die Werte an das jeweils verwendete System angepasst werden.
 </p>
 </details>
 
