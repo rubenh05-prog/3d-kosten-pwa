@@ -2,31 +2,62 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <title>3D-Druck Kosten Rechner</title>
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ffcc00">
+<meta name="color-scheme" content="light dark">
 
 <!-- iOS PWA -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="3D Kosten">
-<link rel="icon" href="icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png" sizes="192x192">
 
 <style>
+/* ---------- Farben & Dark Mode ---------- */
+:root {
+    --bg: #f4f4f4;
+    --card: #ffffff;
+    --text: #000000;
+    --border: #000000;
+    --accent: #ffcc00;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #121212;
+        --card: #1e1e1e;
+        --text: #f1f1f1;
+        --border: #333333;
+        --accent: #ffcc00;
+    }
+}
+
+html {
+    background: var(--bg);
+}
+
 body {
     font-family: Arial, sans-serif;
-    background: #f4f4f4;
+    background: var(--bg);
+    color: var(--text);
+
     display: flex;
     justify-content: center;
     align-items: center;
+
     min-height: 100vh;
     margin: 0;
-    padding: 16px;
+    padding:
+        calc(16px + env(safe-area-inset-top))
+        calc(16px + env(safe-area-inset-right))
+        calc(16px + env(safe-area-inset-bottom))
+        calc(16px + env(safe-area-inset-left));
     box-sizing: border-box;
 }
 
@@ -37,15 +68,15 @@ body {
     width: 100%;
 }
 
-/* Eingaben */
+/* ---------- Eingaben ---------- */
 .top-section {
-    background: #ffffff;
+    background: var(--card);
     padding: 22px;
     border-radius: 10px;
     width: 100%;
     max-width: 420px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    border-top: 6px solid #ffcc00;
+    border-top: 6px solid var(--accent);
 }
 
 ul { list-style: none; padding: 0; margin: 0; }
@@ -57,26 +88,33 @@ li {
     gap: 10px;
 }
 
-label { font-weight: bold; min-width: 190px; }
+label {
+    font-weight: bold;
+    min-width: 190px;
+    color: var(--text);
+}
 
 input {
     width: 130px;
     padding: 6px;
     font-size: 16px;
     border-radius: 6px;
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
 }
 
 .time-inputs { display: flex; gap: 6px; }
 .time-inputs input { width: 60px; }
 
-/* Ergebnisse */
+/* ---------- Ergebnisse ---------- */
 .bottom-section {
     margin-top: 15px;
     width: 100%;
     max-width: 420px;
-    background: #ffffff;
+    background: var(--card);
     border-radius: 10px;
-    border-top: 2px solid #000;
+    border-top: 2px solid var(--border);
     min-height: 150px;
     opacity: 0;
     transition: opacity 0.4s ease;
@@ -105,7 +143,7 @@ input {
 
 .results-footer {
     font-size: 1.4em;
-    color: #c48b00;
+    color: var(--accent);
     font-weight: bold;
     text-align: center;
     padding-bottom: 15px;
