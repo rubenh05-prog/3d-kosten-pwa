@@ -1,7 +1,5 @@
-const CACHE_NAME = "3d-druck-rechner-v2";
-
-// Dateien, die offline verfügbar sein sollen
-const FILES_TO_CACHE = [
+const CACHE_NAME = "3d-kosten-v3";
+const FILES = [
   "./",
   "./index.html",
   "./manifest.json",
@@ -9,20 +7,26 @@ const FILES_TO_CACHE = [
   "./icon-512.png"
 ];
 
-// Installations-Event: Dateien werden gecached
 self.addEventListener("install", event => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES_TO_CACHE))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES))
   );
 });
 
-// Fetch-Event: offline aus dem Cache bedienen
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+      )
+    )
+  );
+  self.clients.claim();
+});
+
 self.addEventListener("fetch", event => {
   event.respondWith(
-    caches.match(event.request).then(response => {
-      // Wenn im Cache, dann zurückgeben, sonst aus Netz laden
-      return response || fetch(event.request);
-    })
+    caches.match(event.request).then(r => r || fetch(event.request))
   );
 });
-
