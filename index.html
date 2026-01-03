@@ -2,92 +2,127 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>3D-Druck Kosten Rechner</title>
 
-<!-- PWA Ergänzungen -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffcc00">
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="3D Druck Kosten">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f4f4f4;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
+body{
+  font-family:Arial,sans-serif;
+  background:#f4f4f4;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  margin:0;
 }
 
-.container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+.container{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
-/* Oberer Bereich: Eingaben */
-.top-section {
-    background: #ffffff;
-    padding: 25px 35px;
-    border-radius: 10px;
-    width: 420px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    border-top: 6px solid #ffcc00;
-    display: flex;
-    flex-direction: column;
+.top-section{
+  background:#fff;
+  padding:25px 35px;
+  border-radius:10px;
+  width:420px;
+  box-shadow:0 4px 10px rgba(0,0,0,.15);
+  border-top:6px solid #ffcc00;
 }
 
-ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+ul{list-style:none;padding:0;margin:0;}
+li{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:12px;
+}
+label{font-weight:bold;}
+input{width:120px;padding:6px;}
+
+.bottom-section{
+  margin-top:20px;
+  background:#fff;
+  width:420px;
+  border-radius:10px;
+  box-shadow:0 4px 10px rgba(0,0,0,.15);
+  padding:20px;
+  display:none;
 }
 
-li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
+.result-row{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:8px;
 }
 
-label {
-    font-weight: bold;
+.total{
+  font-weight:bold;
+  font-size:1.2em;
+  margin-top:10px;
 }
 
-input {
-    width: 120px;
-    padding: 6px;
+.details-btn{
+  font-size:.8em;
+  color:#666;
+  cursor:pointer;
+  margin-left:6px;
 }
 
-/* Ergebnisbereich */
-.bottom-section {
-    margin-top: 20px;
-    background: #ffffff;
-    width: 420px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    padding: 20px;
-    display: none;
+/* Overlay */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  display:none;
+  align-items:center;
+  justify-content:center;
 }
 
-.result-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
+.overlay.show{display:flex;}
+
+.sheet{
+  background:#fff;
+  width:420px;
+  padding:20px;
+  border-radius:10px;
 }
 
-.total {
-    font-weight: bold;
-    font-size: 1.2em;
-    margin-top: 10px;
+.sheet h3{
+  margin-top:0;
+  text-align:center;
 }
+
+.sheet ul{list-style:none;padding:0;}
+.sheet li{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+
+/* Balken */
+.bar-wrap{margin-top:15px;display:none;}
+.bar-label{
+  font-size:.8em;
+  color:#555;
+  display:flex;
+  justify-content:space-between;
+}
+.bar-bg{
+  background:#ddd;
+  height:16px;
+  border-radius:8px;
+  overflow:hidden;
+}
+.bar{
+  height:100%;
+  text-align:center;
+  font-size:.7em;
+  font-weight:bold;
+}
+.bar.diff{background:#ffcc00;}
+.bar.total{background:#4caf50;color:#fff;}
 </style>
 </head>
 
@@ -110,47 +145,110 @@ input {
 <div class="result-row">Material: <span id="materialKosten">0.00</span> €</div>
 <div class="result-row">Strom: <span id="stromKosten">0.00</span> €</div>
 <div class="result-row">Verschleiß: <span id="verschleissKosten">0.00</span> €</div>
-<div class="total">Gesamt: <span id="gesamtKosten">0.00</span> €</div>
+<div class="total">
+Gesamt: <span id="gesamtKosten">0.00</span> €
+<span class="details-btn" id="openDetails">ⓘ Details</span>
+</div>
 </div>
 
+</div>
+
+<!-- DETAILS -->
+<div class="overlay" id="overlay">
+<div class="sheet">
+<h3>Details</h3>
+
+<ul>
+<li><span>Maschinenstundensatz</span><strong><span id="rateHour">–</span> €/h</strong></li>
+<li><span>Kosten pro Gramm</span><strong><span id="costGram">–</span> €/g</strong></li>
+<li><span>Energieverbrauch</span><strong><span id="energyKwh">–</span> kWh</strong></li>
+<li><span>Größter Kostenanteil</span><strong><span id="mainFactor">–</span></strong></li>
+</ul>
+
+<div class="bar-wrap" id="barWrap">
+
+<div id="barMS">
+<div class="bar-label">
+<span>Material ↔ Strom</span>
+<span id="msText"></span>
+</div>
+<div class="bar-bg">
+<div class="bar diff" id="barDiff"></div>
+</div>
+</div>
+
+<div id="barMG">
+<div class="bar-label">
+<span>Materialanteil gesamt</span>
+<span id="mgText"></span>
+</div>
+<div class="bar-bg">
+<div class="bar total" id="barTotal"></div>
+</div>
+</div>
+
+</div>
+
+</div>
 </div>
 
 <script>
-document.querySelectorAll("input").forEach(i => i.oninput = calc);
+const overlay=document.getElementById("overlay");
+openDetails.onclick=()=>overlay.classList.add("show");
+overlay.onclick=e=>{if(e.target===overlay)overlay.classList.remove("show");};
 
-function g(id){
-  return parseFloat(document.getElementById(id).value) || 0;
-}
+document.querySelectorAll("input").forEach(i=>i.oninput=calc);
+function g(id){return parseFloat(document.getElementById(id).value)||0;}
 
 function calc(){
-  const pla = g("plaPreis");
-  const w = g("leistung");
-  const s = g("strompreis");
-  const v = g("verschleiss");
-  const h = g("druckzeit");
-  const mat = g("material");
+  const pla=g("plaPreis"),w=g("leistung"),s=g("strompreis"),
+        v=g("verschleiss"),h=g("druckzeit"),mat=g("material");
 
-  if(pla<=0 || w<=0 || s<=0 || v<=0 || h<=0 || mat<=0){
-    document.getElementById("results").style.display = "none";
-    return;
+  if(pla<=0||w<=0||s<=0||v<=0||h<=0||mat<=0){
+    results.style.display="none";return;
   }
 
-  const mk = (mat/1000) * pla;
-  const sk = (w/1000) * h * s;
-  const vk = h * v;
-  const ges = mk + sk + vk;
+  const mk=(mat/1000)*pla;
+  const sk=(w/1000)*h*s;
+  const vk=h*v;
+  const ges=mk+sk+vk;
 
-  materialKosten.textContent = mk.toFixed(2);
-  stromKosten.textContent = sk.toFixed(2);
-  verschleissKosten.textContent = vk.toFixed(2);
-  gesamtKosten.textContent = ges.toFixed(2);
+  materialKosten.textContent=mk.toFixed(2);
+  stromKosten.textContent=sk.toFixed(2);
+  verschleissKosten.textContent=vk.toFixed(2);
+  gesamtKosten.textContent=ges.toFixed(2);
 
-  document.getElementById("results").style.display = "block";
+  rateHour.textContent=(ges/h).toFixed(2);
+  costGram.textContent=(ges/mat).toFixed(3);
+  energyKwh.textContent=((w/1000)*h).toFixed(2);
+
+  const max=Math.max(mk,sk,vk);
+  mainFactor.textContent=max===mk?"Material":max===sk?"Strom":"Verschleiß";
+
+  updateBars(mk,sk,ges);
+  results.style.display="block";
 }
 
-/* Service Worker Registrierung */
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js");
+function updateBars(mk,sk,ges){
+  let show=false;
+
+  const diff=Math.abs(mk-sk)/Math.max(mk,sk)*100;
+  if(diff>=30){
+    barDiff.style.width=diff+"%";
+    barDiff.textContent=diff.toFixed(1)+"%";
+    msText.textContent=diff.toFixed(1)+" %";
+    show=true;
+  }
+
+  const mg=(mk/ges)*100;
+  if(mg>=30){
+    barTotal.style.width=mg+"%";
+    barTotal.textContent=mg.toFixed(1)+"%";
+    mgText.textContent=mg.toFixed(1)+" %";
+    show=true;
+  }
+
+  barWrap.style.display=show?"block":"none";
 }
 </script>
 
