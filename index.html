@@ -62,32 +62,40 @@ input{
 .results{display:none;}
 .results.visible{display:block;}
 
+.results-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+
 .results-main{
-  text-align:center;
   font-size:1.4em;
   font-weight:bold;
   color:var(--accent);
-  margin-bottom:8px;
 }
-.results-list div{text-align:center;margin-bottom:4px;}
 
-/* Button – FIX */
 .toggle-btn{
-  display:block;
-  margin:12px auto 0;
-  width:100%;
-  padding:8px;
-  border-radius:8px;
-  border:1px solid var(--border);
-  background:transparent;
-  color:var(--text);
+  border:none;
+  background:none;
+  color:var(--muted);
   font-size:0.85em;
   cursor:pointer;
+  padding:4px 6px;
+}
+
+.results-list div{
+  text-align:center;
+  margin-bottom:4px;
 }
 
 /* Details */
-.details{margin-top:12px;font-size:0.9em;}
+.details{
+  margin-top:10px;
+  font-size:0.9em;
+}
 .details.hidden{display:none;}
+
 .details ul li{
   padding:6px 0;
   border-bottom:1px solid var(--border);
@@ -146,8 +154,11 @@ input{
 
 <div class="card results" id="results">
 
-<div class="results-main">
-Gesamt: <span id="gesamtKosten">0.00</span> €
+<div class="results-header">
+  <div class="results-main">
+    Gesamt: <span id="gesamtKosten">0.00</span> €
+  </div>
+  <button class="toggle-btn" id="toggleDetails">Details ▾</button>
 </div>
 
 <div class="results-list">
@@ -156,9 +167,8 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 <div>Verschleiß: <span id="verschleissKosten">0.00</span> €</div>
 </div>
 
-<button class="toggle-btn" id="toggleDetails">Details ausblenden</button>
-
 <div class="details" id="details">
+
 <ul>
 <li><span>Maschinenstundensatz</span> <strong><span id="rateHour">–</span> €/h</strong></li>
 <li><span>Kosten pro Gramm</span> <strong><span id="costGram">–</span> €/g</strong></li>
@@ -177,6 +187,7 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 <div class="bar-bg"><div class="bar total" id="barTotal"></div></div>
 </div>
 </div>
+
 </div>
 </div>
 
@@ -188,7 +199,7 @@ const toggleBtn=document.getElementById("toggleDetails");
 
 toggleBtn.addEventListener("click",()=>{
   const hidden=details.classList.toggle("hidden");
-  toggleBtn.textContent=hidden?"Details einblenden":"Details ausblenden";
+  toggleBtn.textContent=hidden?"Details ▸":"Details ▾";
 });
 
 document.querySelectorAll("input").forEach(i=>i.addEventListener("input",calc));
@@ -240,8 +251,7 @@ function updateBars(mk,sk,ges){
    barDiff.style.width=diff+"%";
    barDiff.textContent=(mk>sk?"+":"−")+diff+"%";
    msText.textContent=(mk>sk?"+":"−")+diff+" %";
-   barMS.style.display="block";
-   show=true;
+   barMS.style.display="block"; show=true;
  }else barMS.style.display="none";
 
  const mg=Math.round(((mk/ges)*100)*10)/10;
@@ -249,8 +259,7 @@ function updateBars(mk,sk,ges){
    barTotal.style.width=mg+"%";
    barTotal.textContent=mg+"%";
    mgText.textContent=mg+" %";
-   barMG.style.display="block";
-   show=true;
+   barMG.style.display="block"; show=true;
  }else barMG.style.display="none";
 
  barWrap.style.display=show?"block":"none";
