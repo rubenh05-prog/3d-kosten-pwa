@@ -7,7 +7,7 @@
 
 <style>
 :root{
-  --bg:#f4f4f4;--card:#fff;--text:#000;--border:#000;
+  --bg:#f4f4f4;--card:#fff;--text:#000;
   --accent:#ffcc00;--muted:#666;
 }
 body{
@@ -17,31 +17,29 @@ body{
 .container{width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px;}
 
 .top-section{
-  background:var(--card);border-radius:12px;padding:18px;
+  background:#fff;border-radius:12px;padding:18px;
   border-top:6px solid var(--accent);
 }
 ul{list-style:none;padding:0;margin:0;}
-li{display:flex;justify-content:space-between;gap:8px;margin-bottom:10px;}
-label{font-weight:600;min-width:145px;}
-input{
-  width:110px;padding:10px;border-radius:8px;
-  border:1px solid var(--border);background:#fff;
-}
+li{display:flex;justify-content:space-between;margin-bottom:10px;}
+label{font-weight:600;}
+input{width:110px;padding:8px;}
 
 .time-inputs{display:flex;gap:6px;}
 .time-inputs input{width:52px;text-align:center;}
 
 .bottom-section{
-  background:#fff;border-radius:12px;border-top:2px solid #000;
-  display:none;
+  background:#fff;border-radius:12px;
+  border-top:2px solid #000;display:none;
 }
 
 .results-content{
-  padding:14px;display:flex;flex-direction:column;gap:6px;align-items:center;
+  padding:14px;display:flex;flex-direction:column;
+  gap:6px;align-items:center;
 }
 .results-footer{
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  font-size:1.4em;font-weight:bold;color:#ffcc00;padding-bottom:12px;
+  display:flex;justify-content:center;gap:6px;
+  font-size:1.4em;font-weight:bold;color:#ffcc00;
 }
 .details-btn{font-size:.7em;color:#666;cursor:pointer;}
 
@@ -52,37 +50,20 @@ input{
 .overlay.show{display:flex;}
 
 .sheet{
-  width:100%;
-  max-width:420px;
-  margin:auto;
-  background:#fff;
-  border-radius:16px 16px 0 0;
-  padding:18px;
-  max-height:85vh;
-  overflow-y:auto;
+  width:100%;max-width:420px;margin:auto;background:#fff;
+  border-radius:16px 16px 0 0;padding:18px;
+  max-height:85vh;overflow-y:auto;
 }
 
-.sheet ul{list-style:none;padding:0;margin:0;}
-.sheet li{display:flex;justify-content:space-between;padding:8px 0;}
-
-.bar-wrap{margin-top:14px;display:none;}
-.bar-bg{height:18px;background:#ddd;border-radius:9px;overflow:hidden;}
-.bar{height:100%;font-size:.7em;font-weight:bold;text-align:center;}
-.bar.diff{background:#ffcc00;}
-.bar.total{background:#4caf50;color:#fff;}
-
-.desc{font-size:.75em;color:#555;margin-bottom:4px;}
+.sheet ul{list-style:none;padding:0;}
+.sheet li{display:flex;justify-content:space-between;padding:6px 0;}
 
 .pdf-btn{
-  margin-top:18px;
-  width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:none;
-  background:#ffcc00;
-  font-weight:bold;
-  cursor:pointer;
+  margin-top:18px;width:100%;padding:14px;
+  border-radius:12px;border:none;
+  background:#ffcc00;font-weight:bold;
 }
+.pdf-btn:disabled{opacity:.4;}
 </style>
 </head>
 
@@ -91,29 +72,29 @@ input{
 
 <div class="top-section">
 <ul>
-<li><label>Filament €/kg</label><input id="plaPreis" type="number" value="22.5"></li>
-<li><label>Leistung (W)</label><input id="leistung" type="number" value="130"></li>
-<li><label>Strom €/kWh</label><input id="strompreis" type="number" value="0.33"></li>
-<li><label>Verschleiß €/h</label><input id="verschleiss" type="number" value="0.08"></li>
+<li><label>Filament €/kg</label><input id="plaPreis" value="22.5"></li>
+<li><label>Leistung (W)</label><input id="leistung" value="130"></li>
+<li><label>Strom €/kWh</label><input id="strompreis" value="0.33"></li>
+<li><label>Verschleiß €/h</label><input id="verschleiss" value="0.08"></li>
 <li>
 <label>Druckzeit</label>
 <div class="time-inputs">
-<input id="druckzeitStunden" type="number" placeholder="h">
-<input id="druckzeitMinuten" type="number" placeholder="min">
+<input id="druckzeitStunden" placeholder="h">
+<input id="druckzeitMinuten" placeholder="min">
 </div>
 </li>
-<li><label>Material (g)</label><input id="material" type="number"></li>
+<li><label>Material (g)</label><input id="material"></li>
 </ul>
 </div>
 
 <div class="bottom-section" id="results">
 <div class="results-content">
-<div>Material: <span id="materialKosten">0.00</span> €</div>
-<div>Strom: <span id="stromKosten">0.00</span> €</div>
-<div>Verschleiß: <span id="verschleissKosten">0.00</span> €</div>
+<div>Material: <span id="materialKosten">–</span> €</div>
+<div>Strom: <span id="stromKosten">–</span> €</div>
+<div>Verschleiß: <span id="verschleissKosten">–</span> €</div>
 </div>
 <div class="results-footer">
-Gesamt: <span id="gesamtKosten">0.00</span> €
+Gesamt: <span id="gesamtKosten">–</span> €
 <span class="details-btn" id="openDetails">ⓘ Details</span>
 </div>
 </div>
@@ -122,32 +103,83 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 
 <div class="overlay" id="overlay">
 <div class="sheet">
-
 <ul>
-<li><span>Maschinenstundensatz</span><strong><span id="rateHour"></span> €/h</strong></li>
-<li><span>Kosten pro Gramm</span><strong><span id="costGram"></span> €/g</strong></li>
-<li><span>Energieverbrauch</span><strong><span id="energyKwh"></span> kWh</strong></li>
-<li><span>Größter Kostenanteil</span><strong><span id="mainFactor"></span></strong></li>
+<li>Maschinenstundensatz: <strong><span id="rateHour">–</span> €/h</strong></li>
+<li>Kosten pro Gramm: <strong><span id="costGram">–</span> €/g</strong></li>
+<li>Energieverbrauch: <strong><span id="energyKwh">–</span> kWh</strong></li>
+<li>Größter Kostenanteil: <strong><span id="mainFactor">–</span></strong></li>
 </ul>
 
-<div class="bar-wrap" id="barWrap">
-<div>
-<div class="desc" id="msDesc"></div>
-<div class="bar-bg"><div class="bar diff" id="barDiff"></div></div>
-</div>
-<div style="margin-top:10px">
-<div class="desc" id="mgDesc"></div>
-<div class="bar-bg"><div class="bar total" id="barTotal"></div></div>
-</div>
-</div>
-
-<button class="pdf-btn" onclick="downloadPDF()">📄 PDF drucken</button>
-
+<button class="pdf-btn" id="pdfBtn" onclick="downloadPDF()" disabled>
+📄 PDF drucken
+</button>
 </div>
 </div>
 
 <script>
-/* Logik unverändert – bewusst nicht erneut hier gekürzt */
+const overlay=document.getElementById("overlay");
+const pdfBtn=document.getElementById("pdfBtn");
+
+openDetails.onclick=()=>overlay.classList.add("show");
+overlay.onclick=e=>{if(e.target===overlay)overlay.classList.remove("show");};
+
+document.querySelectorAll("input").forEach(i=>i.oninput=calc);
+function g(id){return parseFloat(document.getElementById(id).value)||0;}
+
+function calc(){
+  let h=g("druckzeitStunden"), m=g("druckzeitMinuten");
+  while(m>=60){m-=60;h++;}
+  const min=h*60+m;
+
+  const pla=g("plaPreis"),w=g("leistung"),
+        s=g("strompreis"),v=g("verschleiss"),mat=g("material");
+
+  if(min<=0||pla<=0||w<=0||s<=0||v<=0||mat<=0){
+    results.style.display="none";
+    pdfBtn.disabled=true;
+    return;
+  }
+
+  const hrs=min/60;
+  const mk=(mat/1000)*pla;
+  const sk=(w/1000)*hrs*s;
+  const vk=hrs*v;
+  const ges=mk+sk+vk;
+
+  materialKosten.textContent=mk.toFixed(2);
+  stromKosten.textContent=sk.toFixed(2);
+  verschleissKosten.textContent=vk.toFixed(2);
+  gesamtKosten.textContent=ges.toFixed(2);
+
+  rateHour.textContent=(ges/hrs).toFixed(2);
+  costGram.textContent=(ges/mat).toFixed(3);
+  energyKwh.textContent=((w/1000)*hrs).toFixed(2);
+  mainFactor.textContent=mk>=sk&&mk>=vk?"Material":sk>=vk?"Strom":"Verschleiß";
+
+  results.style.display="block";
+  pdfBtn.disabled=false;
+}
+
+function downloadPDF(){
+  const w=window.open("");
+  w.document.write(`
+  <h2>3D-Druck Kostenübersicht</h2>
+  <ul>
+    <li>Material: ${materialKosten.textContent} €</li>
+    <li>Strom: ${stromKosten.textContent} €</li>
+    <li>Verschleiß: ${verschleissKosten.textContent} €</li>
+    <li><b>Gesamt: ${gesamtKosten.textContent} €</b></li>
+  </ul>
+  <h3>Details</h3>
+  <ul>
+    <li>Maschinenstundensatz: ${rateHour.textContent} €/h</li>
+    <li>Kosten pro Gramm: ${costGram.textContent} €/g</li>
+    <li>Energieverbrauch: ${energyKwh.textContent} kWh</li>
+    <li>Größter Kostenanteil: ${mainFactor.textContent}</li>
+  </ul>
+  `);
+  w.print();
+}
 </script>
 </body>
 </html>
