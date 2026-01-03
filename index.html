@@ -26,6 +26,7 @@ body{
   background:var(--card);border-radius:12px;padding:18px;
   border-top:6px solid var(--accent);
 }
+
 ul{list-style:none;padding:0;margin:0;}
 li{display:flex;justify-content:space-between;gap:8px;margin-bottom:10px;}
 label{font-weight:600;min-width:145px;}
@@ -33,7 +34,6 @@ input{
   width:110px;padding:10px;border-radius:8px;
   border:1px solid var(--border);background:var(--card);color:var(--text);
 }
-
 .time-inputs{display:flex;gap:6px;}
 .time-inputs input{width:52px;text-align:center;}
 
@@ -43,16 +43,44 @@ input{
 }
 .bottom-section.visible{opacity:1;}
 
-.results-content{padding:14px;display:flex;flex-direction:column;gap:6px;align-items:center;}
+.results-content{
+  padding:14px;display:flex;flex-direction:column;gap:6px;align-items:center;
+}
 .results-footer{
   display:flex;align-items:center;justify-content:center;gap:6px;
   font-size:1.4em;font-weight:bold;color:var(--accent);padding-bottom:12px;
 }
 .details-btn{font-size:.7em;color:var(--muted);cursor:pointer;}
 
+/* Overlay */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.4);
+  display:none;align-items:flex-end;z-index:20;
+}
+.overlay.show{display:flex;}
+.sheet{
+  width:100%;max-width:420px;margin:auto;
+  background:var(--card);border-radius:16px 16px 0 0;
+  padding:18px;
+  transform:translateY(100%);
+  animation:slideUp .25s ease forwards;
+}
+@keyframes slideUp{to{transform:translateY(0);}}
+
+.sheet h3{text-align:center;margin:0 0 12px;font-size:1em;}
+.sheet ul{list-style:none;padding:0;margin:0;}
+.sheet li{
+  display:flex;justify-content:space-between;
+  padding:8px 0;border-bottom:1px solid var(--border);
+}
+.sheet li:last-child{border:none;}
+.sheet span{color:var(--muted);}
+
+/* PDF Button */
 .pdf-btn{
-  margin-top:12px;width:100%;padding:12px;border-radius:10px;
-  border:none;background:var(--accent);font-weight:bold;cursor:pointer;
+  margin-top:14px;width:100%;padding:12px;
+  border-radius:10px;border:none;
+  background:var(--accent);font-weight:bold;cursor:pointer;
 }
 </style>
 </head>
@@ -95,15 +123,34 @@ input{
 </div>
 <div class="results-footer">
 Gesamt: <span id="gesamtKosten">0.00</span> €
+<span class="details-btn" id="openDetails">ⓘ Details</span>
 </div>
-<button class="pdf-btn" onclick="downloadPDF()">📄 PDF herunterladen</button>
 </div>
 
+</div>
+
+<!-- DETAILS OVERLAY -->
+<div class="overlay" id="overlay">
+<div class="sheet">
+<h3>Details</h3>
+
+<ul>
+<li><span>Maschinenstundensatz</span><strong><span id="rateHour">–</span> €/h</strong></li>
+<li><span>Kosten pro Gramm</span><strong><span id="costGram">–</span> €/g</strong></li>
+<li><span>Energieverbrauch</span><strong><span id="energyKwh">–</span> kWh</strong></li>
+</ul>
+
+<button class="pdf-btn" onclick="downloadPDF()">📄 PDF herunterladen</button>
+</div>
 </div>
 
 <script>
 const ROUND_TO=0.1;
 const results=document.getElementById("results");
+const overlay=document.getElementById("overlay");
+
+openDetails.onclick=()=>overlay.classList.add("show");
+overlay.onclick=e=>{if(e.target===overlay)overlay.classList.remove("show");};
 
 document.querySelectorAll("input").forEach(i=>i.oninput=calc);
 
@@ -134,21 +181,23 @@ function calc(){
  verschleissKosten.textContent=vk.toFixed(2);
  gesamtKosten.textContent=ges.toFixed(2);
 
+ rateHour.textContent=(ges/hrs).toFixed(2);
+ costGram.textContent=(ges/mat).toFixed(3);
+ energyKwh.textContent=((w/1000)*hrs).toFixed(2);
+
  results.classList.add("visible");
 }
 
-/* ===== Echter PDF Download ===== */
+/* PDF via Druckdialog – zuverlässig */
 function downloadPDF(){
  const d=new Date();
  const dateStr=new Intl.DateTimeFormat("de-DE",{
    year:"numeric",month:"2-digit",day:"2-digit",
    hour:"2-digit",minute:"2-digit"
  }).format(d);
- const fileDate=d.toISOString().slice(0,10);
 
  const html=`
 <!DOCTYPE html><html><head>
-<meta charset="UTF-8">
 <style>
 @page{size:A4 portrait;margin:20mm 20mm 20mm 20mm;}
 body{font-family:Arial;font-size:12px;}
@@ -158,25 +207,19 @@ small{color:#666;}
 </style>
 </head><body>
 <h2>3D-Druck Kostenübersicht</h2>
-<small>Überschlägige Unterhaltskosten – keine Preis- oder Angebotskalkulation.</small>
 <table>
-<tr><td>Materialkosten</td><td>${materialKosten.textContent} €</td></tr>
-<tr><td>Stromkosten</td><td>${stromKosten.textContent} €</td></tr>
-<tr><td>Verschleißkosten</td><td>${verschleissKosten.textContent} €</td></tr>
-<tr><td><strong>Gesamtkosten</strong></td><td><strong>${gesamtKosten.textContent} €</strong></td></tr>
+<tr><td>Material</td><td>${materialKosten.textContent} €</td></tr>
+<tr><td>Strom</td><td>${stromKosten.textContent} €</td></tr>
+<tr><td>Verschleiß</td><td>${verschleissKosten.textContent} €</td></tr>
+<tr><td><strong>Gesamt</strong></td><td><strong>${gesamtKosten.textContent} €</strong></td></tr>
 </table>
 <small>Erstellt am ${dateStr}</small>
 </body></html>`;
 
- const blob=new Blob([html],{type:"text/html"});
- const url=URL.createObjectURL(blob);
- const a=document.createElement("a");
- a.href=url;
- a.download=`3D-Druck_Kosten_${fileDate}.pdf`;
- document.body.appendChild(a);
- a.click();
- document.body.removeChild(a);
- URL.revokeObjectURL(url);
+ const w=window.open("");
+ w.document.write(html);
+ w.document.close();
+ w.onload=()=>w.print();
 }
 </script>
 </body>
