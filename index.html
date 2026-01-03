@@ -34,7 +34,6 @@ body{
   gap:14px;
 }
 
-/* Karten */
 .card{
   background:var(--card);
   border-radius:12px;
@@ -72,9 +71,10 @@ input{
 }
 .results-list div{text-align:center;margin-bottom:4px;}
 
-/* Button */
+/* Button – FIX */
 .toggle-btn{
-  margin-top:10px;
+  display:block;
+  margin:12px auto 0;
   width:100%;
   padding:8px;
   border-radius:8px;
@@ -86,12 +86,8 @@ input{
 }
 
 /* Details */
-.details{
-  margin-top:12px;
-  font-size:0.9em;
-}
+.details{margin-top:12px;font-size:0.9em;}
 .details.hidden{display:none;}
-
 .details ul li{
   padding:6px 0;
   border-bottom:1px solid var(--border);
@@ -131,7 +127,6 @@ input{
 <body>
 <div class="container">
 
-<!-- Eingaben -->
 <div class="card top">
 <ul>
 <li><label>Filament €/kg</label><input id="plaPreis" type="number" value="22.5"></li>
@@ -149,7 +144,6 @@ input{
 </ul>
 </div>
 
-<!-- Ergebnisse + Details -->
 <div class="card results" id="results">
 
 <div class="results-main">
@@ -165,7 +159,6 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 <button class="toggle-btn" id="toggleDetails">Details ausblenden</button>
 
 <div class="details" id="details">
-
 <ul>
 <li><span>Maschinenstundensatz</span> <strong><span id="rateHour">–</span> €/h</strong></li>
 <li><span>Kosten pro Gramm</span> <strong><span id="costGram">–</span> €/g</strong></li>
@@ -174,30 +167,21 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 </ul>
 
 <div class="bar-wrap" id="barWrap">
-
 <div class="bar-row" id="barMS">
-<div class="bar-label">
-<span>Material ↔ Strom</span>
-<span id="msText"></span>
-</div>
+<div class="bar-label"><span>Material ↔ Strom</span><span id="msText"></span></div>
 <div class="bar-bg"><div class="bar diff" id="barDiff"></div></div>
 </div>
 
 <div class="bar-row" id="barMG">
-<div class="bar-label">
-<span>Materialanteil</span>
-<span id="mgText"></span>
-</div>
+<div class="bar-label"><span>Materialanteil</span><span id="mgText"></span></div>
 <div class="bar-bg"><div class="bar total" id="barTotal"></div></div>
 </div>
-
 </div>
 </div>
 </div>
 
 <script>
 const ROUND_TO=0.1;
-
 const results=document.getElementById("results");
 const details=document.getElementById("details");
 const toggleBtn=document.getElementById("toggleDetails");
@@ -222,11 +206,10 @@ function calc(){
 
  if(pla<=0||w<=0||s<=0||v<=0||mat<=0||min<=5){
    results.classList.remove("visible");
-   results.style.display="none";
    return;
  }
 
- results.style.display="block";
+ results.classList.add("visible");
 
  const hrs=min/60;
  const mk=(mat/1000)*pla;
