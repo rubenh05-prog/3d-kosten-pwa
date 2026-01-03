@@ -65,10 +65,10 @@ input{
 .bar.diff{background:#ffcc00;}
 .bar.total{background:#4caf50;color:#fff;}
 
-.pdf-btn{
-  margin-top:14px;width:100%;padding:12px;
-  border-radius:10px;border:none;
-  background:#ffcc00;font-weight:bold;cursor:pointer;
+.desc{
+  font-size:.75em;
+  color:#555;
+  margin-bottom:4px;
 }
 </style>
 </head>
@@ -121,17 +121,18 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 </ul>
 
 <div class="bar-wrap" id="barWrap">
+
 <div>
-<div>Material ↔ Strom <span id="msText"></span></div>
+<div class="desc" id="msDesc"></div>
 <div class="bar-bg"><div class="bar diff" id="barDiff"></div></div>
 </div>
-<div>
-<div>Materialanteil gesamt <span id="mgText"></span></div>
+
+<div style="margin-top:10px">
+<div class="desc" id="mgDesc"></div>
 <div class="bar-bg"><div class="bar total" id="barTotal"></div></div>
 </div>
-</div>
 
-<button class="pdf-btn" onclick="downloadPDF()">📄 PDF drucken</button>
+</div>
 
 </div>
 </div>
@@ -184,56 +185,40 @@ function calc(){
 
 function updateBars(mk,sk,ges){
   let show=false;
+
+  /* Material ↔ Strom */
   const diff=Math.abs(mk-sk)/Math.max(mk,sk)*100;
   if(diff>=30){
-    barDiff.style.width=diff+"%";
-    barDiff.textContent=diff.toFixed(1)+"%";
-    msText.textContent=diff.toFixed(1)+" %";
+    const pct=diff.toFixed(1);
+    const matTeurer=mk>sk;
+
+    barDiff.style.width=pct+"%";
+    barDiff.textContent=pct+"%";
+
+    msDesc.textContent = matTeurer
+      ? `Materialkosten sind ${pct} % höher als Stromkosten (bezogen auf den höheren Wert)`
+      : `Stromkosten sind ${pct} % höher als Materialkosten (bezogen auf den höheren Wert)`;
+
     show=true;
+  } else {
+    msDesc.textContent="";
   }
+
+  /* Materialanteil gesamt */
   const mg=(mk/ges)*100;
   if(mg>=30){
-    barTotal.style.width=mg+"%";
-    barTotal.textContent=mg.toFixed(1)+"%";
-    mgText.textContent=mg.toFixed(1)+" %";
+    const pct=mg.toFixed(1);
+    barTotal.style.width=pct+"%";
+    barTotal.textContent=pct+"%";
+    mgDesc.textContent=`Materialkosten machen ${pct} % der Gesamtkosten aus`;
     show=true;
+  } else {
+    mgDesc.textContent="";
   }
+
   barWrap.style.display=show?"block":"none";
 }
-
-function downloadPDF(){
-  const now=new Date().toLocaleString("de-DE");
-
-  const rows=[
-    ["Material",materialKosten.textContent+" €"],
-    ["Strom",stromKosten.textContent+" €"],
-    ["Verschleiß",verschleissKosten.textContent+" €"],
-    ["Gesamt",gesamtKosten.textContent+" €"],
-    ["Maschinenstundensatz",rateHour.textContent+" €/h"],
-    ["Kosten pro Gramm",costGram.textContent+" €/g"],
-    ["Energieverbrauch",energyKwh.textContent+" kWh"],
-    ["Größter Kostenanteil",mainFactor.textContent]
-  ];
-
-  let extra="";
-  if(barWrap.style.display==="block"){
-    if(msText.textContent) extra+=`<li>Material ↔ Strom: ${msText.textContent}</li>`;
-    if(mgText.textContent) extra+=`<li>Materialanteil: ${mgText.textContent}</li>`;
-  }
-
-  const html=`
-  <html><body style="font-family:Arial">
-  <h2>3D-Druck Kostenübersicht</h2>
-  <ul>${rows.map(r=>`<li>${r[0]}: ${r[1]}</li>`).join("")}</ul>
-  ${extra?`<h3>Hinweise</h3><ul>${extra}</ul>`:""}
-  <small>Erstellt am ${now}</small>
-  </body></html>`;
-
-  const w=window.open("");
-  w.document.write(html);
-  w.document.close();
-  w.onload=()=>w.print();
-}
 </script>
+
 </body>
 </html>
