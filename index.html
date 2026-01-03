@@ -18,7 +18,6 @@
 @media(prefers-color-scheme:dark){
   :root{--bg:#121212;--card:#1e1e1e;--text:#f1f1f1;--border:#333;--muted:#aaa;}
 }
-
 body{
   margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text);
   display:flex;justify-content:center;min-height:100vh;padding:16px;
@@ -36,7 +35,6 @@ input{
   width:110px;padding:10px;border-radius:8px;
   border:1px solid var(--border);background:var(--card);color:var(--text);
 }
-
 .time-inputs{display:flex;gap:6px;}
 .time-inputs input{width:52px;text-align:center;}
 
@@ -53,13 +51,12 @@ input{
 }
 .details-btn{font-size:.7em;color:var(--muted);cursor:pointer;}
 
-/* ===== Overlay ===== */
+/* Overlay */
 .overlay{
   position:fixed;inset:0;background:rgba(0,0,0,.4);
   display:none;align-items:flex-end;z-index:20;
 }
 .overlay.show{display:flex;}
-
 .sheet{
   width:100%;max-width:420px;margin:auto;
   background:var(--card);border-radius:16px 16px 0 0;
@@ -69,7 +66,7 @@ input{
 }
 @keyframes slideUp{to{transform:translateY(0);}}
 
-.sheet h3{margin:0 0 12px;font-size:1em;text-align:center;}
+.sheet h3{text-align:center;margin:0 0 12px;font-size:1em;}
 .sheet ul{list-style:none;padding:0;margin:0;}
 .sheet li{
   display:flex;justify-content:space-between;
@@ -78,7 +75,7 @@ input{
 .sheet li:last-child{border:none;}
 .sheet span{color:var(--muted);}
 
-/* ===== Mini-Balken ===== */
+/* Balken */
 .bar-wrap{margin-top:14px;display:none;}
 .bar-row{margin-bottom:12px;}
 .bar-label{
@@ -98,7 +95,6 @@ input{
 }
 .bar.diff{background:#ffcc00;color:#000;}
 .bar.total{background:#4caf50;color:#fff;}
-
 @media(prefers-color-scheme:dark){
   .bar-bg{background:rgba(255,255,255,.15);}
 }
@@ -139,20 +135,17 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 
 </div>
 
-<!-- ===== Overlay ===== -->
 <div class="overlay" id="overlay">
 <div class="sheet">
 <h3>Weitere Kennzahlen</h3>
 
 <ul>
 <li><span>Maschinenstundensatz</span><strong><span id="rateHour">–</span> €/h</strong></li>
-<li><span>Materialanteil</span><strong><span id="matPercent">–</span> %</strong></li>
 <li><span>Kosten pro Gramm</span><strong><span id="costGram">–</span> €/g</strong></li>
 </ul>
 
 <div class="bar-wrap" id="barWrap">
 
-<!-- Kostenunterschied Material ↔ Strom -->
 <div class="bar-row" id="barMS">
 <div class="bar-label">
 <span>Kostenunterschied Material ↔ Strom</span>
@@ -163,7 +156,6 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 </div>
 </div>
 
-<!-- Material vs. Gesamt -->
 <div class="bar-row" id="barMG">
 <div class="bar-label">
 <span>Materialanteil an Gesamtkosten</span>
@@ -187,7 +179,6 @@ openDetails.onclick=()=>overlay.classList.add("show");
 overlay.onclick=e=>{if(e.target===overlay)overlay.classList.remove("show");};
 
 document.querySelectorAll("input").forEach(i=>i.oninput=calc);
-
 function g(id){return parseFloat(document.getElementById(id).value)||0;}
 
 function calc(){
@@ -215,21 +206,16 @@ function calc(){
  gesamtKosten.textContent=ges.toFixed(2);
 
  rateHour.textContent=(ges/hrs).toFixed(2);
- matPercent.textContent=((mk/ges)*100).toFixed(1);
  costGram.textContent=(ges/mat).toFixed(3);
 
  updateBars(mk,sk,ges);
  results.classList.add("visible");
 }
 
-/* ===== Balken-Logik (final) ===== */
 function updateBars(mk,sk,ges){
  let show=false;
 
- /* Kostenunterschied Material ↔ Strom */
- const maxMS=Math.max(mk,sk);
- const diffPct=Math.abs(mk-sk)/maxMS*100;
-
+ const diffPct=Math.abs(mk-sk)/Math.max(mk,sk)*100;
  if(diffPct>=30){
    const sign=mk>sk?"+":"−";
    barDiff.style.width=diffPct+"%";
@@ -239,7 +225,6 @@ function updateBars(mk,sk,ges){
    show=true;
  }else barMS.style.display="none";
 
- /* Materialanteil Gesamt */
  const mg=(mk/ges)*100;
  if(mg>=30){
    barTotal.style.width=mg+"%";
