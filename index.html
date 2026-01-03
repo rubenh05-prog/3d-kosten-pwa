@@ -14,56 +14,131 @@ body{
   margin:0;font-family:Arial,sans-serif;background:var(--bg);
   display:flex;justify-content:center;min-height:100vh;padding:16px;
 }
-.container{width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px;}
+.container{
+  width:100%;
+  max-width:360px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
 
+/* Eingaben */
 .top-section{
-  background:var(--card);border-radius:12px;padding:18px;
+  background:var(--card);
+  border-radius:12px;
+  padding:18px;
   border-top:6px solid var(--accent);
 }
+
 ul{list-style:none;padding:0;margin:0;}
-li{display:flex;justify-content:space-between;gap:8px;margin-bottom:10px;}
+li{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:10px;
+}
 label{font-weight:600;min-width:145px;}
 input{
-  width:110px;padding:10px;border-radius:8px;
-  border:1px solid var(--border);background:#fff;
+  width:110px;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:#fff;
 }
 
-.time-inputs{display:flex;gap:6px;}
-.time-inputs input{width:52px;text-align:center;}
+.time-inputs{
+  display:flex;
+  gap:6px;
+}
+.time-inputs input{
+  width:52px;
+  text-align:center;
+}
 
+/* Ergebnis */
 .bottom-section{
-  background:#fff;border-radius:12px;border-top:2px solid #000;
+  background:#fff;
+  border-radius:12px;
+  border-top:2px solid #000;
   display:none;
 }
 
 .results-content{
-  padding:14px;display:flex;flex-direction:column;gap:6px;align-items:center;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  align-items:center;
 }
 .results-footer{
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  font-size:1.4em;font-weight:bold;color:#ffcc00;padding-bottom:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  font-size:1.4em;
+  font-weight:bold;
+  color:#ffcc00;
+  padding-bottom:12px;
 }
-.details-btn{font-size:.7em;color:#666;cursor:pointer;}
+.details-btn{
+  font-size:.7em;
+  color:#666;
+  cursor:pointer;
+}
 
+/* Overlay */
 .overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.4);
-  display:none;align-items:flex-end;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  display:none;
+  align-items:flex-end;
 }
-.overlay.show{display:flex;}
+.overlay.show{
+  display:flex;
+}
 
+/* 🔧 DETAIL-BOX – jetzt rund wie oben */
 .sheet{
-  width:100%;max-width:420px;margin:auto;background:#fff;
-  border-radius:16px 16px 0 0;padding:18px;
+  width:100%;
+  max-width:420px;
+  margin:auto;
+  background:#fff;
+  border-radius:16px; /* ← HIER angepasst */
+  padding:18px;
 }
 
 .sheet ul{list-style:none;padding:0;margin:0;}
-.sheet li{display:flex;justify-content:space-between;padding:8px 0;}
+.sheet li{
+  display:flex;
+  justify-content:space-between;
+  padding:8px 0;
+}
 
-.bar-wrap{margin-top:14px;display:none;}
-.bar-bg{height:18px;background:#ddd;border-radius:9px;overflow:hidden;}
-.bar{height:100%;font-size:.7em;font-weight:bold;text-align:center;}
-.bar.diff{background:#ffcc00;}
-.bar.total{background:#4caf50;color:#fff;}
+/* Balkendiagramme */
+.bar-wrap{
+  margin-top:14px;
+  display:none;
+}
+.bar-bg{
+  height:18px;
+  background:#ddd;
+  border-radius:9px;
+  overflow:hidden;
+}
+.bar{
+  height:100%;
+  font-size:.7em;
+  font-weight:bold;
+  text-align:center;
+}
+.bar.diff{
+  background:#ffcc00;
+}
+.bar.total{
+  background:#4caf50;
+  color:#fff;
+}
 
 .bar-desc{
   font-size:.75em;
@@ -109,6 +184,7 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 
 </div>
 
+<!-- DETAILS -->
 <div class="overlay" id="overlay">
 <div class="sheet">
 <ul>
@@ -122,12 +198,16 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 
 <div>
 <div class="bar-desc" id="diffDesc"></div>
-<div class="bar-bg"><div class="bar diff" id="barDiff"></div></div>
+<div class="bar-bg">
+<div class="bar diff" id="barDiff"></div>
+</div>
 </div>
 
 <div style="margin-top:10px">
 <div class="bar-desc" id="matDesc"></div>
-<div class="bar-bg"><div class="bar total" id="barTotal"></div></div>
+<div class="bar-bg">
+<div class="bar total" id="barTotal"></div>
+</div>
 </div>
 
 </div>
@@ -137,10 +217,14 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 <script>
 const overlay=document.getElementById("overlay");
 openDetails.onclick=()=>overlay.classList.add("show");
-overlay.onclick=e=>{if(e.target===overlay)overlay.classList.remove("show");};
+overlay.onclick=e=>{
+  if(e.target===overlay) overlay.classList.remove("show");
+};
 
 document.querySelectorAll("input").forEach(i=>i.oninput=calc);
-function g(id){return parseFloat(document.getElementById(id).value)||0;}
+function g(id){
+  return parseFloat(document.getElementById(id).value)||0;
+}
 
 function calc(){
   let h=g("druckzeitStunden"), m=g("druckzeitMinuten");
@@ -156,7 +240,8 @@ function calc(){
         mat=g("material");
   const min=h*60+m;
   if(min<=0||pla<=0||w<=0||s<=0||v<=0||mat<=0){
-    results.style.display="none";return;
+    results.style.display="none";
+    return;
   }
 
   const hrs=min/60;
@@ -184,7 +269,6 @@ function calc(){
 function updateBars(mk,sk,ges){
   let show=false;
 
-  /* Differenz Material ↔ Strom (bezogen auf höheren Wert) */
   const diff=Math.abs(mk-sk)/Math.max(mk,sk)*100;
   if(diff>=30){
     const pct=diff.toFixed(1);
@@ -200,7 +284,6 @@ function updateBars(mk,sk,ges){
     show=true;
   } else diffDesc.textContent="";
 
-  /* Materialanteil an Gesamtkosten */
   const mg=(mk/ges)*100;
   if(mg>=30){
     const pct=mg.toFixed(1);
