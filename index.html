@@ -2,121 +2,66 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>3D-Druck Kosten Rechner</title>
 
 <style>
+:root{
+  --bg:#f4f4f4;--card:#fff;--text:#000;--border:#000;
+  --accent:#ffcc00;--muted:#666;
+}
 body{
-  font-family:Arial,sans-serif;
-  background:#f4f4f4;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-  margin:0;
+  margin:0;font-family:Arial,sans-serif;background:var(--bg);
+  display:flex;justify-content:center;min-height:100vh;padding:16px;
 }
-.container{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
+.container{width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px;}
+
 .top-section{
-  background:#fff;
-  padding:25px 35px;
-  border-radius:10px;
-  width:420px;
-  box-shadow:0 4px 10px rgba(0,0,0,.15);
-  border-top:6px solid #ffcc00;
+  background:var(--card);border-radius:12px;padding:18px;
+  border-top:6px solid var(--accent);
 }
 ul{list-style:none;padding:0;margin:0;}
-li{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:12px;
+li{display:flex;justify-content:space-between;gap:8px;margin-bottom:10px;}
+label{font-weight:600;min-width:145px;}
+input{
+  width:110px;padding:10px;border-radius:8px;
+  border:1px solid var(--border);background:#fff;
 }
-label{font-weight:bold;}
-input{width:120px;padding:6px;}
 
-.time-inputs{
-  display:flex;
-  gap:6px;
-}
-.time-inputs input{
-  width:55px;
-  text-align:center;
-}
+.time-inputs{display:flex;gap:6px;}
+.time-inputs input{width:52px;text-align:center;}
 
 .bottom-section{
-  margin-top:20px;
-  background:#fff;
-  width:420px;
-  border-radius:10px;
-  box-shadow:0 4px 10px rgba(0,0,0,.15);
-  padding:20px;
+  background:#fff;border-radius:12px;border-top:2px solid #000;
   display:none;
-}
-.result-row{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:8px;
-}
-.total{
-  font-weight:bold;
-  font-size:1.2em;
-  margin-top:10px;
-}
-.details-btn{
-  font-size:.8em;
-  color:#666;
-  cursor:pointer;
-  margin-left:6px;
 }
 
-/* Overlay */
+.results-content{
+  padding:14px;display:flex;flex-direction:column;gap:6px;align-items:center;
+}
+.results-footer{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:1.4em;font-weight:bold;color:#ffcc00;padding-bottom:12px;
+}
+.details-btn{font-size:.7em;color:#666;cursor:pointer;}
+
 .overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.4);
-  display:none;
-  align-items:center;
-  justify-content:center;
+  position:fixed;inset:0;background:rgba(0,0,0,.4);
+  display:none;align-items:flex-end;
 }
 .overlay.show{display:flex;}
 
 .sheet{
-  background:#fff;
-  width:420px;
-  padding:20px;
-  border-radius:10px;
-}
-.sheet h3{text-align:center;margin-top:0;}
-.sheet ul{list-style:none;padding:0;}
-.sheet li{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:8px;
+  width:100%;max-width:420px;margin:auto;background:#fff;
+  border-radius:16px 16px 0 0;padding:18px;
 }
 
-/* Balken */
-.bar-wrap{margin-top:15px;display:none;}
-.bar-label{
-  font-size:.8em;
-  color:#555;
-  display:flex;
-  justify-content:space-between;
-}
-.bar-bg{
-  background:#ddd;
-  height:16px;
-  border-radius:8px;
-  overflow:hidden;
-}
-.bar{
-  height:100%;
-  text-align:center;
-  font-size:.7em;
-  font-weight:bold;
-}
+.sheet ul{list-style:none;padding:0;margin:0;}
+.sheet li{display:flex;justify-content:space-between;padding:8px 0;}
+
+.bar-wrap{margin-top:14px;display:none;}
+.bar-bg{height:18px;background:#ddd;border-radius:9px;overflow:hidden;}
+.bar{height:100%;font-size:.7em;font-weight:bold;text-align:center;}
 .bar.diff{background:#ffcc00;}
 .bar.total{background:#4caf50;color:#fff;}
 </style>
@@ -145,10 +90,12 @@ input{width:120px;padding:6px;}
 </div>
 
 <div class="bottom-section" id="results">
-<div class="result-row">Material: <span id="materialKosten">0.00</span> €</div>
-<div class="result-row">Strom: <span id="stromKosten">0.00</span> €</div>
-<div class="result-row">Verschleiß: <span id="verschleissKosten">0.00</span> €</div>
-<div class="total">
+<div class="results-content">
+<div>Material: <span id="materialKosten">0.00</span> €</div>
+<div>Strom: <span id="stromKosten">0.00</span> €</div>
+<div>Verschleiß: <span id="verschleissKosten">0.00</span> €</div>
+</div>
+<div class="results-footer">
 Gesamt: <span id="gesamtKosten">0.00</span> €
 <span class="details-btn" id="openDetails">ⓘ Details</span>
 </div>
@@ -156,29 +103,22 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 
 </div>
 
-<!-- DETAILS -->
 <div class="overlay" id="overlay">
 <div class="sheet">
-<h3>Details</h3>
 <ul>
-<li><span>Maschinenstundensatz</span><strong><span id="rateHour">–</span> €/h</strong></li>
-<li><span>Kosten pro Gramm</span><strong><span id="costGram">–</span> €/g</strong></li>
-<li><span>Energieverbrauch</span><strong><span id="energyKwh">–</span> kWh</strong></li>
-<li><span>Größter Kostenanteil</span><strong><span id="mainFactor">–</span></strong></li>
+<li><span>Maschinenstundensatz</span><strong><span id="rateHour"></span> €/h</strong></li>
+<li><span>Kosten pro Gramm</span><strong><span id="costGram"></span> €/g</strong></li>
+<li><span>Energieverbrauch</span><strong><span id="energyKwh"></span> kWh</strong></li>
+<li><span>Größter Kostenanteil</span><strong><span id="mainFactor"></span></strong></li>
 </ul>
 
 <div class="bar-wrap" id="barWrap">
 <div>
-<div class="bar-label">
-<span>Material ↔ Strom</span><span id="msText"></span>
-</div>
+<div>Material ↔ Strom <span id="msText"></span></div>
 <div class="bar-bg"><div class="bar diff" id="barDiff"></div></div>
 </div>
-
 <div>
-<div class="bar-label">
-<span>Materialanteil gesamt</span><span id="mgText"></span>
-</div>
+<div>Materialanteil gesamt <span id="mgText"></span></div>
 <div class="bar-bg"><div class="bar total" id="barTotal"></div></div>
 </div>
 </div>
@@ -202,12 +142,10 @@ function calc(){
   druckzeitStunden.value=h;
   druckzeitMinuten.value=m;
 
-  const pla=g("plaPreis"), w=g("leistung"),
-        s=g("strompreis"), v=g("verschleiss"),
-        mat=g("material");
-
+  const pla=g("plaPreis"),w=g("leistung"),s=g("strompreis"),
+        v=g("verschleiss"),mat=g("material");
   const min=h*60+m;
-  if(pla<=0||w<=0||s<=0||v<=0||mat<=0||min<=0){
+  if(min<=0||pla<=0||w<=0||s<=0||v<=0||mat<=0){
     results.style.display="none";return;
   }
 
@@ -235,7 +173,6 @@ function calc(){
 
 function updateBars(mk,sk,ges){
   let show=false;
-
   const diff=Math.abs(mk-sk)/Math.max(mk,sk)*100;
   if(diff>=30){
     barDiff.style.width=diff+"%";
@@ -243,7 +180,6 @@ function updateBars(mk,sk,ges){
     msText.textContent=diff.toFixed(1)+" %";
     show=true;
   }
-
   const mg=(mk/ges)*100;
   if(mg>=30){
     barTotal.style.width=mg+"%";
@@ -251,10 +187,8 @@ function updateBars(mk,sk,ges){
     mgText.textContent=mg.toFixed(1)+" %";
     show=true;
   }
-
   barWrap.style.display=show?"block":"none";
 }
 </script>
-
 </body>
 </html>
