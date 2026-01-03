@@ -80,7 +80,7 @@ input{
 
 /* ===== Mini-Balken ===== */
 .bar-wrap{margin-top:14px;display:none;}
-.bar-row{margin-bottom:10px;}
+.bar-row{margin-bottom:12px;}
 .bar-label{
   font-size:.75em;color:var(--muted);
   display:flex;justify-content:space-between;
@@ -96,13 +96,11 @@ input{
   font-size:.7em;font-weight:bold;
   transition:width .3s ease;
 }
-.bar.material{background:#ffcc00;color:#000;}
-.bar.power{background:#bbb;color:#000;}
+.bar.diff{background:#ffcc00;color:#000;}
 .bar.total{background:#4caf50;color:#fff;}
 
 @media(prefers-color-scheme:dark){
   .bar-bg{background:rgba(255,255,255,.15);}
-  .bar.power{background:#999;}
 }
 </style>
 </head>
@@ -154,20 +152,21 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 
 <div class="bar-wrap" id="barWrap">
 
+<!-- Kostenunterschied Material ↔ Strom -->
 <div class="bar-row" id="barMS">
 <div class="bar-label">
-<span>Material vs. Strom</span>
+<span>Kostenunterschied Material ↔ Strom</span>
 <span id="msText"></span>
 </div>
 <div class="bar-bg">
-<div class="bar material" id="barMaterial"></div>
-<div class="bar power" id="barPower"></div>
+<div class="bar diff" id="barDiff"></div>
 </div>
 </div>
 
+<!-- Material vs. Gesamt -->
 <div class="bar-row" id="barMG">
 <div class="bar-label">
-<span>Material vs. Gesamt</span>
+<span>Materialanteil an Gesamtkosten</span>
 <span id="mgText"></span>
 </div>
 <div class="bar-bg">
@@ -223,25 +222,24 @@ function calc(){
  results.classList.add("visible");
 }
 
-/* ===== Balken-Logik ===== */
+/* ===== Balken-Logik (final) ===== */
 function updateBars(mk,sk,ges){
  let show=false;
 
+ /* Kostenunterschied Material ↔ Strom */
  const maxMS=Math.max(mk,sk);
- const diffMS=Math.abs(mk-sk)/maxMS;
+ const diffPct=Math.abs(mk-sk)/maxMS*100;
 
- if(diffMS>=0.3){
-   const mp=(mk/maxMS)*100;
-   const sp=(sk/maxMS)*100;
-   barMaterial.style.width=mp+"%";
-   barPower.style.width=sp+"%";
-   barMaterial.textContent=mp.toFixed(1)+"%";
-   barPower.textContent=sp.toFixed(1)+"%";
-   msText.textContent=mp.toFixed(1)+" % / "+sp.toFixed(1)+" %";
+ if(diffPct>=30){
+   const sign=mk>sk?"+":"−";
+   barDiff.style.width=diffPct+"%";
+   barDiff.textContent=sign+diffPct.toFixed(1)+"%";
+   msText.textContent=sign+diffPct.toFixed(1)+" % Unterschied";
    barMS.style.display="block";
    show=true;
  }else barMS.style.display="none";
 
+ /* Materialanteil Gesamt */
  const mg=(mk/ges)*100;
  if(mg>=30){
    barTotal.style.width=mg+"%";
