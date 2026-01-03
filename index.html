@@ -169,11 +169,11 @@ input{
 <li><label>Strom €/kWh</label><input id="strompreis" type="number" value="0.33"></li>
 <li><label>Verschleiß €/h</label><input id="verschleiss" type="number" value="0.08"></li>
 <li>
-<label>Druckzeit</label>
-<div class="time-inputs">
-<input id="druckzeitStunden" type="number" placeholder="h">
-<input id="druckzeitMinuten" type="number" placeholder="min">
-</div>
+  <label>Druckzeit</label>
+  <div class="time-inputs">
+    <input id="druckzeitStunden" type="number" placeholder="h">
+    <input id="druckzeitMinuten" type="number" placeholder="min">
+  </div>
 </li>
 <li><label>Material (g)</label><input id="material" type="number"></li>
 </ul>
@@ -233,13 +233,20 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 
 <script>
 const ROUND_TO = 0.1;
+
 const results = document.getElementById("results");
 const overlay = document.getElementById("overlay");
+const openDetailsBtn = document.getElementById("openDetails");
 
-openDetails.onclick = () => overlay.classList.add("show");
-overlay.onclick = e => { if (e.target === overlay) overlay.classList.remove("show"); };
+/* Overlay Events – FIX */
+openDetailsBtn.addEventListener("click", () => {
+  overlay.classList.add("show");
+});
+overlay.addEventListener("click", e => {
+  if (e.target === overlay) overlay.classList.remove("show");
+});
 
-document.querySelectorAll("input").forEach(i => i.oninput = calc);
+document.querySelectorAll("input").forEach(i => i.addEventListener("input", calc));
 function g(id){ return parseFloat(document.getElementById(id).value) || 0; }
 
 function calc(){
@@ -257,7 +264,8 @@ function calc(){
         mat = g("material");
 
   if(pla<=0 || w<=0 || s<=0 || v<=0 || mat<=0 || min<=5){
-    results.classList.remove("visible"); return;
+    results.classList.remove("visible");
+    return;
   }
 
   const hrs = min / 60;
@@ -287,9 +295,8 @@ function calc(){
 function updateBars(mk, sk, ges){
   let show = false;
 
-  /* Einheitliche Logik für Differenz */
-  const diffPctRaw = Math.abs(mk - sk) / Math.max(mk, sk) * 100;
-  const diffPct = Math.round(diffPctRaw * 10) / 10;
+  /* Einheitliche Logik: Material ↔ Strom */
+  const diffPct = Math.round((Math.abs(mk - sk) / Math.max(mk, sk) * 100) * 10) / 10;
   const showDiff = diffPct >= 30;
 
   if(showDiff){
@@ -301,9 +308,8 @@ function updateBars(mk, sk, ges){
     show = true;
   } else barMS.style.display = "none";
 
-  /* Einheitliche Logik für Materialanteil */
-  const mgRaw = (mk / ges) * 100;
-  const mg = Math.round(mgRaw * 10) / 10;
+  /* Einheitliche Logik: Materialanteil */
+  const mg = Math.round(((mk / ges) * 100) * 10) / 10;
   const showMg = mg >= 30;
 
   if(showMg){
