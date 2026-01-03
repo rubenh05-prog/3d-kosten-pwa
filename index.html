@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>3D-Druck Kosten Rechner</title>
 
 <style>
@@ -16,13 +15,11 @@ body{
   min-height:100vh;
   margin:0;
 }
-
 .container{
   display:flex;
   flex-direction:column;
   align-items:center;
 }
-
 .top-section{
   background:#fff;
   padding:25px 35px;
@@ -31,7 +28,6 @@ body{
   box-shadow:0 4px 10px rgba(0,0,0,.15);
   border-top:6px solid #ffcc00;
 }
-
 ul{list-style:none;padding:0;margin:0;}
 li{
   display:flex;
@@ -40,6 +36,15 @@ li{
 }
 label{font-weight:bold;}
 input{width:120px;padding:6px;}
+
+.time-inputs{
+  display:flex;
+  gap:6px;
+}
+.time-inputs input{
+  width:55px;
+  text-align:center;
+}
 
 .bottom-section{
   margin-top:20px;
@@ -50,19 +55,16 @@ input{width:120px;padding:6px;}
   padding:20px;
   display:none;
 }
-
 .result-row{
   display:flex;
   justify-content:space-between;
   margin-bottom:8px;
 }
-
 .total{
   font-weight:bold;
   font-size:1.2em;
   margin-top:10px;
 }
-
 .details-btn{
   font-size:.8em;
   color:#666;
@@ -79,7 +81,6 @@ input{width:120px;padding:6px;}
   align-items:center;
   justify-content:center;
 }
-
 .overlay.show{display:flex;}
 
 .sheet{
@@ -88,12 +89,7 @@ input{width:120px;padding:6px;}
   padding:20px;
   border-radius:10px;
 }
-
-.sheet h3{
-  margin-top:0;
-  text-align:center;
-}
-
+.sheet h3{text-align:center;margin-top:0;}
 .sheet ul{list-style:none;padding:0;}
 .sheet li{
   display:flex;
@@ -127,16 +123,23 @@ input{width:120px;padding:6px;}
 </head>
 
 <body>
-
 <div class="container">
 
 <div class="top-section">
 <ul>
-<li><label>Filament €/kg</label><input id="plaPreis" type="number"></li>
-<li><label>Leistung (W)</label><input id="leistung" type="number"></li>
-<li><label>Strom €/kWh</label><input id="strompreis" type="number"></li>
-<li><label>Verschleiß €/h</label><input id="verschleiss" type="number"></li>
-<li><label>Druckzeit (h)</label><input id="druckzeit" type="number"></li>
+<li><label>Filament €/kg</label><input id="plaPreis" type="number" value="22.5"></li>
+<li><label>Leistung (W)</label><input id="leistung" type="number" value="130"></li>
+<li><label>Strom €/kWh</label><input id="strompreis" type="number" value="0.33"></li>
+<li><label>Verschleiß €/h</label><input id="verschleiss" type="number" value="0.08"></li>
+
+<li>
+<label>Druckzeit</label>
+<div class="time-inputs">
+<input id="druckzeitStunden" type="number" placeholder="h">
+<input id="druckzeitMinuten" type="number" placeholder="min">
+</div>
+</li>
+
 <li><label>Material (g)</label><input id="material" type="number"></li>
 </ul>
 </div>
@@ -157,7 +160,6 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 <div class="overlay" id="overlay">
 <div class="sheet">
 <h3>Details</h3>
-
 <ul>
 <li><span>Maschinenstundensatz</span><strong><span id="rateHour">–</span> €/h</strong></li>
 <li><span>Kosten pro Gramm</span><strong><span id="costGram">–</span> €/g</strong></li>
@@ -166,29 +168,20 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 </ul>
 
 <div class="bar-wrap" id="barWrap">
-
-<div id="barMS">
+<div>
 <div class="bar-label">
-<span>Material ↔ Strom</span>
-<span id="msText"></span>
+<span>Material ↔ Strom</span><span id="msText"></span>
 </div>
-<div class="bar-bg">
-<div class="bar diff" id="barDiff"></div>
-</div>
+<div class="bar-bg"><div class="bar diff" id="barDiff"></div></div>
 </div>
 
-<div id="barMG">
+<div>
 <div class="bar-label">
-<span>Materialanteil gesamt</span>
-<span id="mgText"></span>
+<span>Materialanteil gesamt</span><span id="mgText"></span>
 </div>
-<div class="bar-bg">
-<div class="bar total" id="barTotal"></div>
+<div class="bar-bg"><div class="bar total" id="barTotal"></div></div>
 </div>
 </div>
-
-</div>
-
 </div>
 </div>
 
@@ -201,16 +194,27 @@ document.querySelectorAll("input").forEach(i=>i.oninput=calc);
 function g(id){return parseFloat(document.getElementById(id).value)||0;}
 
 function calc(){
-  const pla=g("plaPreis"),w=g("leistung"),s=g("strompreis"),
-        v=g("verschleiss"),h=g("druckzeit"),mat=g("material");
+  let h=g("druckzeitStunden"), m=g("druckzeitMinuten");
+  while(m>=60){m-=60;h++;}
+  while(m<0){m+=60;h--;}
+  h=Math.max(0,Math.min(48,h));
+  m=Math.max(0,Math.min(59,m));
+  druckzeitStunden.value=h;
+  druckzeitMinuten.value=m;
 
-  if(pla<=0||w<=0||s<=0||v<=0||h<=0||mat<=0){
+  const pla=g("plaPreis"), w=g("leistung"),
+        s=g("strompreis"), v=g("verschleiss"),
+        mat=g("material");
+
+  const min=h*60+m;
+  if(pla<=0||w<=0||s<=0||v<=0||mat<=0||min<=0){
     results.style.display="none";return;
   }
 
+  const hrs=min/60;
   const mk=(mat/1000)*pla;
-  const sk=(w/1000)*h*s;
-  const vk=h*v;
+  const sk=(w/1000)*hrs*s;
+  const vk=hrs*v;
   const ges=mk+sk+vk;
 
   materialKosten.textContent=mk.toFixed(2);
@@ -218,9 +222,9 @@ function calc(){
   verschleissKosten.textContent=vk.toFixed(2);
   gesamtKosten.textContent=ges.toFixed(2);
 
-  rateHour.textContent=(ges/h).toFixed(2);
+  rateHour.textContent=(ges/hrs).toFixed(2);
   costGram.textContent=(ges/mat).toFixed(3);
-  energyKwh.textContent=((w/1000)*h).toFixed(2);
+  energyKwh.textContent=((w/1000)*hrs).toFixed(2);
 
   const max=Math.max(mk,sk,vk);
   mainFactor.textContent=max===mk?"Material":max===sk?"Strom":"Verschleiß";
