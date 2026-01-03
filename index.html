@@ -5,14 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>3D-Druck Kosten Rechner</title>
 
+<meta name="color-scheme" content="light dark">
+
 <style>
 :root{
   --bg:#f4f4f4;--card:#fff;--text:#000;--border:#000;
   --accent:#ffcc00;--muted:#666;
 }
+@media(prefers-color-scheme:dark){
+  :root{--bg:#121212;--card:#1e1e1e;--text:#f1f1f1;--border:#333;--muted:#aaa;}
+}
 body{
-  margin:0;font-family:Arial,sans-serif;background:var(--bg);
-  display:flex;justify-content:center;min-height:100vh;padding:16px;
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  min-height:100vh;
+  padding:16px;
 }
 .container{
   width:100%;
@@ -29,7 +40,6 @@ body{
   padding:18px;
   border-top:6px solid var(--accent);
 }
-
 ul{list-style:none;padding:0;margin:0;}
 li{
   display:flex;
@@ -43,25 +53,21 @@ input{
   padding:10px;
   border-radius:8px;
   border:1px solid var(--border);
-  background:#fff;
+  background:var(--card);
+  color:var(--text);
 }
+.time-inputs{display:flex;gap:6px;}
+.time-inputs input{width:52px;text-align:center;}
 
-.time-inputs{
-  display:flex;
-  gap:6px;
-}
-.time-inputs input{
-  width:52px;
-  text-align:center;
-}
-
-/* Ergebnis */
+/* Ergebnisse */
 .bottom-section{
-  background:#fff;
+  background:var(--card);
   border-radius:12px;
-  border-top:2px solid #000;
-  display:none;
+  border-top:2px solid var(--border);
+  opacity:0;
+  transition:.3s;
 }
+.bottom-section.visible{opacity:1;}
 
 .results-content{
   padding:14px;
@@ -77,12 +83,12 @@ input{
   gap:6px;
   font-size:1.4em;
   font-weight:bold;
-  color:#ffcc00;
+  color:var(--accent);
   padding-bottom:12px;
 }
 .details-btn{
   font-size:.7em;
-  color:#666;
+  color:var(--muted);
   cursor:pointer;
 }
 
@@ -93,58 +99,63 @@ input{
   background:rgba(0,0,0,.4);
   display:none;
   align-items:flex-end;
+  z-index:20;
 }
-.overlay.show{
-  display:flex;
-}
-
-/* 🔧 DETAIL-BOX – jetzt rund wie oben */
+.overlay.show{display:flex;}
 .sheet{
   width:100%;
   max-width:420px;
   margin:auto;
-  background:#fff;
-  border-radius:16px; /* ← HIER angepasst */
+  background:var(--card);
+  border-radius:16px 16px 0 0;
   padding:18px;
+  transform:translateY(100%);
+  animation:slideUp .25s ease forwards;
 }
+@keyframes slideUp{to{transform:translateY(0);}}
 
+.sheet h3{
+  text-align:center;
+  margin:0 0 12px;
+  font-size:1em;
+}
 .sheet ul{list-style:none;padding:0;margin:0;}
 .sheet li{
   display:flex;
   justify-content:space-between;
   padding:8px 0;
+  border-bottom:1px solid var(--border);
 }
+.sheet li:last-child{border:none;}
+.sheet span{color:var(--muted);}
 
-/* Balkendiagramme */
-.bar-wrap{
-  margin-top:14px;
-  display:none;
+/* Balken */
+.bar-wrap{margin-top:14px;display:none;}
+.bar-row{margin-bottom:12px;}
+.bar-label{
+  font-size:.75em;
+  color:var(--muted);
+  display:flex;
+  justify-content:space-between;
 }
 .bar-bg{
+  width:100%;
   height:18px;
-  background:#ddd;
   border-radius:9px;
+  background:rgba(0,0,0,.08);
   overflow:hidden;
 }
 .bar{
   height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   font-size:.7em;
   font-weight:bold;
-  text-align:center;
+  transition:width .3s ease;
 }
-.bar.diff{
-  background:#ffcc00;
-}
-.bar.total{
-  background:#4caf50;
-  color:#fff;
-}
-
-.bar-desc{
-  font-size:.75em;
-  color:#555;
-  margin-bottom:4px;
-}
+.bar.diff{background:#ffcc00;color:#000;}
+.bar.total{background:#4caf50;color:#fff;}
 </style>
 </head>
 
@@ -157,7 +168,6 @@ input{
 <li><label>Leistung (W)</label><input id="leistung" type="number" value="130"></li>
 <li><label>Strom €/kWh</label><input id="strompreis" type="number" value="0.33"></li>
 <li><label>Verschleiß €/h</label><input id="verschleiss" type="number" value="0.08"></li>
-
 <li>
 <label>Druckzeit</label>
 <div class="time-inputs">
@@ -165,7 +175,6 @@ input{
 <input id="druckzeitMinuten" type="number" placeholder="min">
 </div>
 </li>
-
 <li><label>Material (g)</label><input id="material" type="number"></li>
 </ul>
 </div>
@@ -187,24 +196,32 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 <!-- DETAILS -->
 <div class="overlay" id="overlay">
 <div class="sheet">
+<h3>Details</h3>
+
 <ul>
-<li><span>Maschinenstundensatz</span><strong><span id="rateHour"></span> €/h</strong></li>
-<li><span>Kosten pro Gramm</span><strong><span id="costGram"></span> €/g</strong></li>
-<li><span>Energieverbrauch</span><strong><span id="energyKwh"></span> kWh</strong></li>
-<li><span>Größter Kostenanteil</span><strong><span id="mainFactor"></span></strong></li>
+<li><span>Maschinenstundensatz</span><strong><span id="rateHour">–</span> €/h</strong></li>
+<li><span>Kosten pro Gramm</span><strong><span id="costGram">–</span> €/g</strong></li>
+<li><span>Energieverbrauch</span><strong><span id="energyKwh">–</span> kWh</strong></li>
+<li><span>Größter Kostenanteil</span><strong><span id="mainFactor">–</span></strong></li>
 </ul>
 
 <div class="bar-wrap" id="barWrap">
 
-<div>
-<div class="bar-desc" id="diffDesc"></div>
+<div class="bar-row" id="barMS">
+<div class="bar-label">
+<span>Kostenunterschied Material ↔ Strom</span>
+<span id="msText"></span>
+</div>
 <div class="bar-bg">
 <div class="bar diff" id="barDiff"></div>
 </div>
 </div>
 
-<div style="margin-top:10px">
-<div class="bar-desc" id="matDesc"></div>
+<div class="bar-row" id="barMG">
+<div class="bar-label">
+<span>Materialanteil an Gesamtkosten</span>
+<span id="mgText"></span>
+</div>
 <div class="bar-bg">
 <div class="bar total" id="barTotal"></div>
 </div>
@@ -215,85 +232,89 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 </div>
 
 <script>
-const overlay=document.getElementById("overlay");
-openDetails.onclick=()=>overlay.classList.add("show");
-overlay.onclick=e=>{
-  if(e.target===overlay) overlay.classList.remove("show");
-};
+const ROUND_TO = 0.1;
+const results = document.getElementById("results");
+const overlay = document.getElementById("overlay");
 
-document.querySelectorAll("input").forEach(i=>i.oninput=calc);
-function g(id){
-  return parseFloat(document.getElementById(id).value)||0;
-}
+openDetails.onclick = () => overlay.classList.add("show");
+overlay.onclick = e => { if (e.target === overlay) overlay.classList.remove("show"); };
+
+document.querySelectorAll("input").forEach(i => i.oninput = calc);
+function g(id){ return parseFloat(document.getElementById(id).value) || 0; }
 
 function calc(){
-  let h=g("druckzeitStunden"), m=g("druckzeitMinuten");
-  while(m>=60){m-=60;h++;}
-  while(m<0){m+=60;h--;}
-  h=Math.max(0,Math.min(48,h));
-  m=Math.max(0,Math.min(59,m));
-  druckzeitStunden.value=h;
-  druckzeitMinuten.value=m;
+  let h = g("druckzeitStunden"), m = g("druckzeitMinuten");
+  while(m >= 60){ m -= 60; h++; }
+  while(m < 0){ m += 60; h--; }
+  h = Math.min(48, Math.max(0, h));
+  m = Math.min(59, Math.max(0, m));
+  druckzeitStunden.value = h;
+  druckzeitMinuten.value = m;
 
-  const pla=g("plaPreis"),w=g("leistung"),
-        s=g("strompreis"),v=g("verschleiss"),
-        mat=g("material");
-  const min=h*60+m;
-  if(min<=0||pla<=0||w<=0||s<=0||v<=0||mat<=0){
-    results.style.display="none";
-    return;
+  const min = h*60 + m;
+  const pla = g("plaPreis"), w = g("leistung"),
+        s = g("strompreis"), v = g("verschleiss"),
+        mat = g("material");
+
+  if(pla<=0 || w<=0 || s<=0 || v<=0 || mat<=0 || min<=5){
+    results.classList.remove("visible"); return;
   }
 
-  const hrs=min/60;
-  const mk=(mat/1000)*pla;
-  const sk=(w/1000)*hrs*s;
-  const vk=hrs*v;
-  const ges=mk+sk+vk;
+  const hrs = min / 60;
+  const mk = (mat/1000) * pla;
+  const sk = (w/1000) * hrs * s;
+  const vk = hrs * v;
+  const ges = Math.ceil((mk + sk + vk) / ROUND_TO) * ROUND_TO;
 
-  materialKosten.textContent=mk.toFixed(2);
-  stromKosten.textContent=sk.toFixed(2);
-  verschleissKosten.textContent=vk.toFixed(2);
-  gesamtKosten.textContent=ges.toFixed(2);
+  materialKosten.textContent = mk.toFixed(2);
+  stromKosten.textContent = sk.toFixed(2);
+  verschleissKosten.textContent = vk.toFixed(2);
+  gesamtKosten.textContent = ges.toFixed(2);
 
-  rateHour.textContent=(ges/hrs).toFixed(2);
-  costGram.textContent=(ges/mat).toFixed(3);
-  energyKwh.textContent=((w/1000)*hrs).toFixed(2);
+  rateHour.textContent = (ges / hrs).toFixed(2);
+  costGram.textContent = (ges / mat).toFixed(3);
+  energyKwh.textContent = ((w/1000) * hrs).toFixed(2);
 
-  const max=Math.max(mk,sk,vk);
-  mainFactor.textContent=max===mk?"Material":max===sk?"Strom":"Verschleiß";
+  const max = Math.max(mk, sk, vk);
+  mainFactor.textContent =
+    max === mk ? "Material" :
+    max === sk ? "Strom" : "Verschleiß";
 
-  updateBars(mk,sk,ges);
-  results.style.display="block";
+  updateBars(mk, sk, ges);
+  results.classList.add("visible");
 }
 
-function updateBars(mk,sk,ges){
-  let show=false;
+function updateBars(mk, sk, ges){
+  let show = false;
 
-  const diff=Math.abs(mk-sk)/Math.max(mk,sk)*100;
-  if(diff>=30){
-    const pct=diff.toFixed(1);
-    const matTeurer=mk>sk;
+  /* Einheitliche Logik für Differenz */
+  const diffPctRaw = Math.abs(mk - sk) / Math.max(mk, sk) * 100;
+  const diffPct = Math.round(diffPctRaw * 10) / 10;
+  const showDiff = diffPct >= 30;
 
-    barDiff.style.width=pct+"%";
-    barDiff.textContent=pct+"%";
+  if(showDiff){
+    const sign = mk > sk ? "+" : "−";
+    barDiff.style.width = diffPct + "%";
+    barDiff.textContent = sign + diffPct + "%";
+    msText.textContent = sign + diffPct + " %";
+    barMS.style.display = "block";
+    show = true;
+  } else barMS.style.display = "none";
 
-    diffDesc.textContent = matTeurer
-      ? `Materialkosten sind ${pct} % höher als Stromkosten (bezogen auf den höheren Kostenwert)`
-      : `Stromkosten sind ${pct} % höher als Materialkosten (bezogen auf den höheren Kostenwert)`;
+  /* Einheitliche Logik für Materialanteil */
+  const mgRaw = (mk / ges) * 100;
+  const mg = Math.round(mgRaw * 10) / 10;
+  const showMg = mg >= 30;
 
-    show=true;
-  } else diffDesc.textContent="";
+  if(showMg){
+    barTotal.style.width = mg + "%";
+    barTotal.textContent = mg + "%";
+    mgText.textContent = mg + " %";
+    barMG.style.display = "block";
+    show = true;
+  } else barMG.style.display = "none";
 
-  const mg=(mk/ges)*100;
-  if(mg>=30){
-    const pct=mg.toFixed(1);
-    barTotal.style.width=pct+"%";
-    barTotal.textContent=pct+"%";
-    matDesc.textContent=`Materialkosten machen ${pct} % der Gesamtkosten aus`;
-    show=true;
-  } else matDesc.textContent="";
-
-  barWrap.style.display=show?"block":"none";
+  barWrap.style.display = show ? "block" : "none";
 }
 </script>
 </body>
