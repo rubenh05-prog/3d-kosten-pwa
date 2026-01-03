@@ -64,6 +64,12 @@ input{
 .bar{height:100%;font-size:.7em;font-weight:bold;text-align:center;}
 .bar.diff{background:#ffcc00;}
 .bar.total{background:#4caf50;color:#fff;}
+
+.bar-desc{
+  font-size:.75em;
+  color:#555;
+  margin-bottom:4px;
+}
 </style>
 </head>
 
@@ -113,14 +119,17 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 </ul>
 
 <div class="bar-wrap" id="barWrap">
+
 <div>
-<div>Material ↔ Strom <span id="msText"></span></div>
+<div class="bar-desc" id="diffDesc"></div>
 <div class="bar-bg"><div class="bar diff" id="barDiff"></div></div>
 </div>
-<div>
-<div>Materialanteil gesamt <span id="mgText"></span></div>
+
+<div style="margin-top:10px">
+<div class="bar-desc" id="matDesc"></div>
 <div class="bar-bg"><div class="bar total" id="barTotal"></div></div>
 </div>
+
 </div>
 </div>
 </div>
@@ -142,8 +151,9 @@ function calc(){
   druckzeitStunden.value=h;
   druckzeitMinuten.value=m;
 
-  const pla=g("plaPreis"),w=g("leistung"),s=g("strompreis"),
-        v=g("verschleiss"),mat=g("material");
+  const pla=g("plaPreis"),w=g("leistung"),
+        s=g("strompreis"),v=g("verschleiss"),
+        mat=g("material");
   const min=h*60+m;
   if(min<=0||pla<=0||w<=0||s<=0||v<=0||mat<=0){
     results.style.display="none";return;
@@ -173,20 +183,33 @@ function calc(){
 
 function updateBars(mk,sk,ges){
   let show=false;
+
+  /* Differenz Material ↔ Strom (bezogen auf höheren Wert) */
   const diff=Math.abs(mk-sk)/Math.max(mk,sk)*100;
   if(diff>=30){
-    barDiff.style.width=diff+"%";
-    barDiff.textContent=diff.toFixed(1)+"%";
-    msText.textContent=diff.toFixed(1)+" %";
+    const pct=diff.toFixed(1);
+    const matTeurer=mk>sk;
+
+    barDiff.style.width=pct+"%";
+    barDiff.textContent=pct+"%";
+
+    diffDesc.textContent = matTeurer
+      ? `Materialkosten sind ${pct} % höher als Stromkosten (bezogen auf den höheren Kostenwert)`
+      : `Stromkosten sind ${pct} % höher als Materialkosten (bezogen auf den höheren Kostenwert)`;
+
     show=true;
-  }
+  } else diffDesc.textContent="";
+
+  /* Materialanteil an Gesamtkosten */
   const mg=(mk/ges)*100;
   if(mg>=30){
-    barTotal.style.width=mg+"%";
-    barTotal.textContent=mg.toFixed(1)+"%";
-    mgText.textContent=mg.toFixed(1)+" %";
+    const pct=mg.toFixed(1);
+    barTotal.style.width=pct+"%";
+    barTotal.textContent=pct+"%";
+    matDesc.textContent=`Materialkosten machen ${pct} % der Gesamtkosten aus`;
     show=true;
-  }
+  } else matDesc.textContent="";
+
   barWrap.style.display=show?"block":"none";
 }
 </script>
