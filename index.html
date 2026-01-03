@@ -34,21 +34,20 @@ body{
   gap:14px;
 }
 
-/* Eingaben */
+/* Karten */
 .card{
   background:var(--card);
   border-radius:12px;
   padding:18px;
 }
-
 .card.top{
   border-top:6px solid var(--accent);
 }
 
+/* Eingaben */
 ul{list-style:none;padding:0;margin:0;}
 li{display:flex;justify-content:space-between;gap:8px;margin-bottom:10px;}
 label{font-weight:600;min-width:145px;}
-
 input{
   width:110px;
   padding:10px;
@@ -57,7 +56,6 @@ input{
   background:var(--card);
   color:var(--text);
 }
-
 .time-inputs{display:flex;gap:6px;}
 .time-inputs input{width:52px;text-align:center;}
 
@@ -70,27 +68,35 @@ input{
   font-size:1.4em;
   font-weight:bold;
   color:var(--accent);
-  margin-bottom:10px;
+  margin-bottom:8px;
 }
+.results-list div{text-align:center;margin-bottom:4px;}
 
-.results-list div{
-  text-align:center;
-  margin-bottom:4px;
+/* Button */
+.toggle-btn{
+  margin-top:10px;
+  width:100%;
+  padding:8px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text);
+  font-size:0.85em;
+  cursor:pointer;
 }
 
 /* Details */
 .details{
-  margin-top:10px;
+  margin-top:12px;
   font-size:0.9em;
 }
+.details.hidden{display:none;}
 
 .details ul li{
   padding:6px 0;
   border-bottom:1px solid var(--border);
 }
-
 .details ul li:last-child{border-bottom:none;}
-
 .details span{color:var(--muted);}
 
 /* Balken */
@@ -156,7 +162,10 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 <div>Verschleiß: <span id="verschleissKosten">0.00</span> €</div>
 </div>
 
-<div class="details">
+<button class="toggle-btn" id="toggleDetails">Details ausblenden</button>
+
+<div class="details" id="details">
+
 <ul>
 <li><span>Maschinenstundensatz</span> <strong><span id="rateHour">–</span> €/h</strong></li>
 <li><span>Kosten pro Gramm</span> <strong><span id="costGram">–</span> €/g</strong></li>
@@ -188,8 +197,17 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 
 <script>
 const ROUND_TO=0.1;
-document.querySelectorAll("input").forEach(i=>i.addEventListener("input",calc));
 
+const results=document.getElementById("results");
+const details=document.getElementById("details");
+const toggleBtn=document.getElementById("toggleDetails");
+
+toggleBtn.addEventListener("click",()=>{
+  const hidden=details.classList.toggle("hidden");
+  toggleBtn.textContent=hidden?"Details einblenden":"Details ausblenden";
+});
+
+document.querySelectorAll("input").forEach(i=>i.addEventListener("input",calc));
 function g(id){return parseFloat(document.getElementById(id).value)||0;}
 
 function calc(){
@@ -203,16 +221,18 @@ function calc(){
        v=g("verschleiss"),mat=g("material");
 
  if(pla<=0||w<=0||s<=0||v<=0||mat<=0||min<=5){
-   results.classList.remove("visible"); results.style.display="none"; return;
+   results.classList.remove("visible");
+   results.style.display="none";
+   return;
  }
+
+ results.style.display="block";
 
  const hrs=min/60;
  const mk=(mat/1000)*pla;
  const sk=(w/1000)*hrs*s;
  const vk=hrs*v;
  const ges=Math.ceil((mk+sk+vk)/ROUND_TO)*ROUND_TO;
-
- results.style.display="block";
 
  materialKosten.textContent=mk.toFixed(2);
  stromKosten.textContent=sk.toFixed(2);
@@ -237,7 +257,8 @@ function updateBars(mk,sk,ges){
    barDiff.style.width=diff+"%";
    barDiff.textContent=(mk>sk?"+":"−")+diff+"%";
    msText.textContent=(mk>sk?"+":"−")+diff+" %";
-   barMS.style.display="block"; show=true;
+   barMS.style.display="block";
+   show=true;
  }else barMS.style.display="none";
 
  const mg=Math.round(((mk/ges)*100)*10)/10;
@@ -245,7 +266,8 @@ function updateBars(mk,sk,ges){
    barTotal.style.width=mg+"%";
    barTotal.textContent=mg+"%";
    mgText.textContent=mg+" %";
-   barMG.style.display="block"; show=true;
+   barMG.style.display="block";
+   show=true;
  }else barMG.style.display="none";
 
  barWrap.style.display=show?"block":"none";
