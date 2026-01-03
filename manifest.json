@@ -1,9 +1,10 @@
 {
-  "name": "3D-Druck Kostenrechner",
-  "short_name": "3D Kosten",
-  "start_url": "./",
+  "name": "3D-Druck Kosten Rechner",
+  "short_name": "3D Druck",
+  "description": "Mobiler Kostenrechner für 3D-Druck",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#121212",
+  "background_color": "#f4f4f4",
   "theme_color": "#ffcc00",
   "orientation": "portrait",
   "icons": [
