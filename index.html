@@ -98,6 +98,20 @@ input{
 @media(prefers-color-scheme:dark){
   .bar-bg{background:rgba(255,255,255,.15);}
 }
+
+/* PDF Button */
+.pdf-btn{
+  margin-top:14px;
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  background:var(--accent);
+  color:#000;
+  font-weight:bold;
+  font-size:0.95em;
+  cursor:pointer;
+}
 </style>
 </head>
 
@@ -135,6 +149,7 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 
 </div>
 
+<!-- Overlay -->
 <div class="overlay" id="overlay">
 <div class="sheet">
 <h3>Weitere Kennzahlen</h3>
@@ -147,7 +162,6 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 </ul>
 
 <div class="bar-wrap" id="barWrap">
-
 <div class="bar-row" id="barMS">
 <div class="bar-label">
 <span>Kostenunterschied Material ↔ Strom</span>
@@ -167,8 +181,10 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 <div class="bar total" id="barTotal"></div>
 </div>
 </div>
-
 </div>
+
+<button class="pdf-btn" onclick="downloadPDF()">📄 PDF herunterladen</button>
+
 </div>
 </div>
 
@@ -211,11 +227,8 @@ function calc(){
  costGram.textContent=(ges/mat).toFixed(3);
  energyKwh.textContent=((w/1000)*hrs).toFixed(2);
 
- /* Größter Kostenfaktor (textuell) */
  const max = Math.max(mk, sk, vk);
- mainFactor.textContent =
-   max===mk ? "Material" :
-   max===sk ? "Strom" : "Verschleiß";
+ mainFactor.textContent = max===mk ? "Material" : max===sk ? "Strom" : "Verschleiß";
 
  updateBars(mk,sk,ges);
  results.classList.add("visible");
@@ -223,7 +236,6 @@ function calc(){
 
 function updateBars(mk,sk,ges){
  let show=false;
-
  const diffPct=Math.abs(mk-sk)/Math.max(mk,sk)*100;
  if(diffPct>=30){
    const sign=mk>sk?"+":"−";
@@ -246,8 +258,40 @@ function updateBars(mk,sk,ges){
  barWrap.style.display=show?"block":"none";
 }
 
-if("serviceWorker"in navigator){
- navigator.serviceWorker.register("service-worker.js");
+/* ===== PDF Export ===== */
+function downloadPDF(){
+ const html=`
+ <html><head><title>3D-Druck Kosten</title>
+ <style>
+ body{font-family:Arial;padding:20px;}
+ h2{margin-top:0;}
+ table{width:100%;border-collapse:collapse;margin-top:10px;}
+ td{padding:6px;border-bottom:1px solid #ccc;}
+ small{color:#666;}
+ </style></head><body>
+ <h2>3D-Druck Kostenübersicht</h2>
+ <small>Diese Zusammenstellung dient ausschließlich der überschlägigen Darstellung technischer Unterhaltskosten eines 3D-Drucks und stellt keine Preis-, Gewinn- oder Angebotskalkulation dar.</small>
+
+ <table>
+ <tr><td>Materialkosten</td><td>${materialKosten.textContent} €</td></tr>
+ <tr><td>Stromkosten</td><td>${stromKosten.textContent} €</td></tr>
+ <tr><td>Verschleißkosten</td><td>${verschleissKosten.textContent} €</td></tr>
+ <tr><td><strong>Gesamtkosten</strong></td><td><strong>${gesamtKosten.textContent} €</strong></td></tr>
+ </table>
+
+ <table>
+ <tr><td>Maschinenstundensatz</td><td>${rateHour.textContent} €/h</td></tr>
+ <tr><td>Kosten pro Gramm</td><td>${costGram.textContent} €/g</td></tr>
+ <tr><td>Energieverbrauch</td><td>${energyKwh.textContent} kWh</td></tr>
+ <tr><td>Größter Kostenfaktor</td><td>${mainFactor.textContent}</td></tr>
+ </table>
+
+ <small>Erstellt am ${new Date().toLocaleString()}</small>
+ </body></html>`;
+ const w=window.open("");
+ w.document.write(html);
+ w.document.close();
+ w.print();
 }
 </script>
 </body>
