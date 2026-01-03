@@ -258,8 +258,13 @@ function updateBars(mk,sk,ges){
  barWrap.style.display=show?"block":"none";
 }
 
-/* ===== PDF Export ===== */
+/* ===== PDF Export (ohne Sekunden, ohne URL im Inhalt) ===== */
 function downloadPDF(){
+ const d=new Date();
+ const dateStr =
+   d.toLocaleDateString("de-DE")+" "+
+   d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+
  const html=`
  <html><head><title>3D-Druck Kosten</title>
  <style>
@@ -286,7 +291,7 @@ function downloadPDF(){
  <tr><td>Größter Kostenfaktor</td><td>${mainFactor.textContent}</td></tr>
  </table>
 
- <small>Erstellt am ${new Date().toLocaleString()}</small>
+ <small>Erstellt am ${dateStr}</small>
  </body></html>`;
  const w=window.open("");
  w.document.write(html);
