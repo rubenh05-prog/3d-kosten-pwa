@@ -136,7 +136,7 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 
 </div>
 
-<!-- DETAILS OVERLAY -->
+<!-- DETAILS -->
 <div class="overlay" id="overlay">
 <div class="sheet">
 <h3>Details</h3>
@@ -145,6 +145,7 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 <li><span>Maschinenstundensatz</span><strong><span id="rateHour">–</span> €/h</strong></li>
 <li><span>Kosten pro Gramm</span><strong><span id="costGram">–</span> €/g</strong></li>
 <li><span>Energieverbrauch</span><strong><span id="energyKwh">–</span> kWh</strong></li>
+<li><span>Größter Kostenanteil</span><strong><span id="mainFactor">–</span></strong></li>
 </ul>
 
 <div class="bar-wrap" id="barWrap">
@@ -219,6 +220,11 @@ function calc(){
   costGram.textContent = (ges / mat).toFixed(3);
   energyKwh.textContent = ((w/1000) * hrs).toFixed(2);
 
+  const max = Math.max(mk, sk, vk);
+  mainFactor.textContent =
+    max === mk ? "Material" :
+    max === sk ? "Strom" : "Verschleiß";
+
   updateBars(mk, sk, ges);
   results.classList.add("visible");
 }
@@ -248,7 +254,6 @@ function updateBars(mk, sk, ges){
   barWrap.style.display = show ? "block" : "none";
 }
 
-/* ===== PDF EXPORT (inkl. Balkenwerte) ===== */
 function downloadPDF(){
   const d = new Date();
   const dateStr = new Intl.DateTimeFormat("de-DE",{
@@ -261,19 +266,22 @@ function downloadPDF(){
   const vk = parseFloat(verschleissKosten.textContent);
   const ges = parseFloat(gesamtKosten.textContent);
 
+  const rate = rateHour.textContent;
+  const gram = costGram.textContent;
+  const energy = energyKwh.textContent;
+  const factor = mainFactor.textContent;
+
   let barInfo = "";
 
   const diffPct = Math.abs(mk - sk) / Math.max(mk, sk) * 100;
   if(diffPct >= 30){
     const sign = mk > sk ? "+" : "−";
-    barInfo += `
-<tr><td>Kostenunterschied Material ↔ Strom</td><td>${sign}${diffPct.toFixed(1)} %</td></tr>`;
+    barInfo += `<tr><td>Kostenunterschied Material ↔ Strom</td><td>${sign}${diffPct.toFixed(1)} %</td></tr>`;
   }
 
   const mg = (mk / ges) * 100;
   if(mg >= 30){
-    barInfo += `
-<tr><td>Materialanteil an Gesamtkosten</td><td>${mg.toFixed(1)} %</td></tr>`;
+    barInfo += `<tr><td>Materialanteil an Gesamtkosten</td><td>${mg.toFixed(1)} %</td></tr>`;
   }
 
   const html = `
@@ -297,11 +305,7 @@ small{color:#666;}
 <body>
 
 <h2>3D-Druck Kostenübersicht</h2>
-<small>
-Diese Zusammenstellung dient ausschließlich der überschlägigen Darstellung
-technischer Unterhaltskosten eines 3D-Drucks und stellt keine Preis-, Gewinn-
-oder Angebotskalkulation dar.
-</small>
+<small>Überschlägige Darstellung technischer Unterhaltskosten – keine Preis- oder Angebotskalkulation.</small>
 
 <table>
 <tr><td>Materialkosten</td><td>${mk.toFixed(2)} €</td></tr>
@@ -310,12 +314,17 @@ oder Angebotskalkulation dar.
 <tr><td><strong>Gesamtkosten</strong></td><td><strong>${ges.toFixed(2)} €</strong></td></tr>
 </table>
 
-${barInfo ? `
 <h3>Detailkennzahlen</h3>
-<table>${barInfo}</table>` : ``}
+<table>
+<tr><td>Maschinenstundensatz</td><td>${rate} €/h</td></tr>
+<tr><td>Kosten pro Gramm</td><td>${gram} €/g</td></tr>
+<tr><td>Energieverbrauch</td><td>${energy} kWh</td></tr>
+<tr><td>Größter Kostenanteil</td><td>${factor}</td></tr>
+</table>
+
+${barInfo ? `<h3>Zusätzliche Hinweise</h3><table>${barInfo}</table>` : ``}
 
 <small>Erstellt am ${dateStr}</small>
-
 </body>
 </html>`;
 
