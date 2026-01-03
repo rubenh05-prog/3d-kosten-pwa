@@ -142,6 +142,8 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 <ul>
 <li><span>Maschinenstundensatz</span><strong><span id="rateHour">–</span> €/h</strong></li>
 <li><span>Kosten pro Gramm</span><strong><span id="costGram">–</span> €/g</strong></li>
+<li><span>Energieverbrauch</span><strong><span id="energyKwh">–</span> kWh</strong></li>
+<li><span>Größter Kostenfaktor</span><strong><span id="mainFactor">–</span></strong></li>
 </ul>
 
 <div class="bar-wrap" id="barWrap">
@@ -207,6 +209,13 @@ function calc(){
 
  rateHour.textContent=(ges/hrs).toFixed(2);
  costGram.textContent=(ges/mat).toFixed(3);
+ energyKwh.textContent=((w/1000)*hrs).toFixed(2);
+
+ /* Größter Kostenfaktor (textuell) */
+ const max = Math.max(mk, sk, vk);
+ mainFactor.textContent =
+   max===mk ? "Material" :
+   max===sk ? "Strom" : "Verschleiß";
 
  updateBars(mk,sk,ges);
  results.classList.add("visible");
