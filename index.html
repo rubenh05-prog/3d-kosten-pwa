@@ -2,9 +2,19 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+
 <title>3D-Druck Kosten Rechner</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffcc00">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="3D Druck Kosten">
 
 <style>
 :root{
@@ -23,10 +33,11 @@ body{
   display:flex;
   justify-content:center;
   min-height:100vh;
-  padding:env(safe-area-inset-top,16px)
-          env(safe-area-inset-right,16px)
-          env(safe-area-inset-bottom,16px)
-          env(safe-area-inset-left,16px);
+  padding:
+    env(safe-area-inset-top,16px)
+    env(safe-area-inset-right,16px)
+    env(safe-area-inset-bottom,16px)
+    env(safe-area-inset-left,16px);
 }
 
 .container{
@@ -56,18 +67,13 @@ input{
   border:1px solid var(--border);
   background:var(--card);
   color:var(--text);
-  font-size:16px; /* verhindert iOS-Zoom */
+  font-size:16px;
 }
-
-input::-webkit-inner-spin-button{display:none;}
 
 .time-inputs{display:flex;gap:6px;}
-.time-inputs input{
-  width:52px;
-  text-align:center;
-}
+.time-inputs input{width:52px;text-align:center;}
 
-/* Ergebnisse – fester Bereich */
+/* Ergebnisse */
 .bottom-section{
   background:var(--card);
   border-radius:12px;
@@ -77,14 +83,14 @@ input::-webkit-inner-spin-button{display:none;}
 
 .results-content{
   padding:14px;
-  display:flex;
+  display:none;
   flex-direction:column;
   gap:6px;
   align-items:center;
 }
 
 .results-footer{
-  display:flex;
+  display:none;
   align-items:center;
   justify-content:center;
   gap:6px;
@@ -100,7 +106,7 @@ input::-webkit-inner-spin-button{display:none;}
   cursor:pointer;
 }
 
-/* Overlay – ruhig */
+/* Overlay */
 .overlay{
   position:fixed;
   inset:0;
@@ -130,6 +136,33 @@ input::-webkit-inner-spin-button{display:none;}
 }
 .sheet li:last-child{border:none;}
 .sheet span{color:var(--muted);}
+
+/* Balken */
+.bar-wrap{margin-top:14px;display:none;}
+.bar-row{margin-bottom:12px;}
+.bar-label{
+  font-size:.75em;
+  color:var(--muted);
+  display:flex;
+  justify-content:space-between;
+}
+.bar-bg{
+  width:100%;
+  height:18px;
+  border-radius:9px;
+  background:rgba(0,0,0,.08);
+  overflow:hidden;
+}
+.bar{
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:.7em;
+  font-weight:bold;
+}
+.bar.diff{background:#ffcc00;color:#000;}
+.bar.total{background:#4caf50;color:#fff;}
 
 .pdf-btn{
   margin-top:14px;
@@ -165,12 +198,12 @@ input::-webkit-inner-spin-button{display:none;}
 </div>
 
 <div class="bottom-section">
-<div class="results-content">
+<div class="results-content" id="resultsContent">
 <div>Material: <span id="materialKosten">0.00</span> €</div>
 <div>Strom: <span id="stromKosten">0.00</span> €</div>
 <div>Verschleiß: <span id="verschleissKosten">0.00</span> €</div>
 </div>
-<div class="results-footer">
+<div class="results-footer" id="resultsFooter">
 Gesamt: <span id="gesamtKosten">0.00</span> €
 <span class="details-btn" id="openDetails">ⓘ Details</span>
 </div>
@@ -182,12 +215,31 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 <div class="overlay" id="overlay">
 <div class="sheet">
 <h3>Details</h3>
+
 <ul>
 <li><span>Maschinenstundensatz</span><strong><span id="rateHour">–</span> €/h</strong></li>
 <li><span>Kosten pro Gramm</span><strong><span id="costGram">–</span> €/g</strong></li>
 <li><span>Energieverbrauch</span><strong><span id="energyKwh">–</span> kWh</strong></li>
 <li><span>Größter Kostenanteil</span><strong><span id="mainFactor">–</span></strong></li>
 </ul>
+
+<div class="bar-wrap" id="barWrap">
+<div class="bar-row" id="barMS">
+<div class="bar-label">
+<span>Kostenunterschied Material ↔ Strom</span>
+<span id="msText"></span>
+</div>
+<div class="bar-bg"><div class="bar diff" id="barDiff"></div></div>
+</div>
+
+<div class="bar-row" id="barMG">
+<div class="bar-label">
+<span>Materialanteil an Gesamtkosten</span>
+<span id="mgText"></span>
+</div>
+<div class="bar-bg"><div class="bar total" id="barTotal"></div></div>
+</div>
+</div>
 
 <button class="pdf-btn" onclick="downloadPDF()">📄 PDF herunterladen</button>
 </div>
@@ -196,30 +248,28 @@ Gesamt: <span id="gesamtKosten">0.00</span> €
 <script>
 const ROUND_TO = 0.1;
 const overlay = document.getElementById("overlay");
+const rc = document.getElementById("resultsContent");
+const rf = document.getElementById("resultsFooter");
 
 openDetails.onclick = () => overlay.classList.add("show");
-overlay.onclick = e => { if (e.target === overlay) overlay.classList.remove("show"); };
+overlay.onclick = e => { if(e.target === overlay) overlay.classList.remove("show"); };
 
 document.querySelectorAll("input").forEach(i => i.oninput = calc);
 function g(id){ return Math.max(0, parseFloat(document.getElementById(id).value) || 0); }
 
 function calc(){
-  let h = g("druckzeitStunden");
-  let m = g("druckzeitMinuten");
-  if(m > 59) m = 59;
-  if(h > 48) h = 48;
-
-  druckzeitStunden.value = h;
-  druckzeitMinuten.value = m;
-
+  const h = g("druckzeitStunden");
+  const m = Math.min(59, g("druckzeitMinuten"));
   const min = h*60 + m;
-  if(min < 5) return;
 
   const pla=g("plaPreis"), w=g("leistung"),
         s=g("strompreis"), v=g("verschleiss"),
         mat=g("material");
 
-  if(!pla || !w || !s || !v || !mat) return;
+  if(min < 5 || !pla || !w || !s || !v || !mat){
+    rc.style.display = rf.style.display = "none";
+    return;
+  }
 
   const hrs=min/60;
   const mk=(mat/1000)*pla;
@@ -238,7 +288,63 @@ function calc(){
 
   const max=Math.max(mk,sk,vk);
   mainFactor.textContent=max===mk?"Material":max===sk?"Strom":"Verschleiß";
+
+  updateBars(mk, sk, ges);
+
+  rc.style.display = rf.style.display = "flex";
+}
+
+function updateBars(mk, sk, ges){
+  let show=false;
+
+  const diff=Math.abs(mk-sk)/Math.max(mk,sk)*100;
+  if(diff>=30){
+    barDiff.style.width=diff+"%";
+    barDiff.textContent=diff.toFixed(1)+"%";
+    msText.textContent=diff.toFixed(1)+" %";
+    barMS.style.display="block";
+    show=true;
+  } else barMS.style.display="none";
+
+  const mg=(mk/ges)*100;
+  if(mg>=30){
+    barTotal.style.width=mg+"%";
+    barTotal.textContent=mg.toFixed(1)+"%";
+    mgText.textContent=mg.toFixed(1)+" %";
+    barMG.style.display="block";
+    show=true;
+  } else barMG.style.display="none";
+
+  barWrap.style.display=show?"block":"none";
+}
+
+function downloadPDF(){
+  const mk=materialKosten.textContent;
+  const sk=stromKosten.textContent;
+  const vk=verschleissKosten.textContent;
+  const ges=gesamtKosten.textContent;
+
+  const w=window.open("", "_blank");
+  w.document.open();
+  w.document.write(`
+  <html><body style="font-family:Arial">
+  <h2>3D-Druck Kostenübersicht</h2>
+  <ul>
+    <li>Material: ${mk} €</li>
+    <li>Strom: ${sk} €</li>
+    <li>Verschleiß: ${vk} €</li>
+    <li><b>Gesamt: ${ges} €</b></li>
+  </ul>
+  </body></html>`);
+  w.document.close();
+  w.onload=()=>w.print();
+}
+
+/* Service Worker */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js");
 }
 </script>
+
 </body>
 </html>
