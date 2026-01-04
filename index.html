@@ -56,10 +56,13 @@ li{
   justify-content:space-between;
   align-items:center;
   margin-bottom:10px;
+  gap:8px;
 }
 label{
   font-weight:600;
+  min-width:140px;
 }
+
 input{
   width:110px;
   padding:8px;
@@ -67,6 +70,15 @@ input{
   border:1px solid var(--border);
   background:var(--card);
   color:var(--text);
+}
+
+.time-inputs{
+  display:flex;
+  gap:6px;
+}
+.time-inputs input{
+  width:52px;
+  text-align:center;
 }
 
 /* Ergebnis */
@@ -102,7 +114,15 @@ input{
 <li><label>Leistung (W)</label><input id="leistung" type="number" value="130"></li>
 <li><label>Strom €/kWh</label><input id="strompreis" type="number" value="0.33"></li>
 <li><label>Verschleiß €/h</label><input id="verschleiss" type="number" value="0.08"></li>
-<li><label>Druckzeit (min)</label><input id="druckzeit" type="number" value="60"></li>
+
+<li>
+  <label>Druckzeit</label>
+  <div class="time-inputs">
+    <input id="druckzeitStunden" type="number" placeholder="h">
+    <input id="druckzeitMinuten" type="number" placeholder="min">
+  </div>
+</li>
+
 <li><label>Material (g)</label><input id="material" type="number" value="50"></li>
 </ul>
 </div>
@@ -130,23 +150,40 @@ const results = document.getElementById("results");
 
 inputs.forEach(i => i.addEventListener("input", calculate));
 
-function calculate(){
-  const pla = +plaPreis.value;
-  const watt = +leistung.value;
-  const strom = +strompreis.value;
-  const versch = +verschleiss.value;
-  const min = +druckzeit.value;
-  const mat = +material.value;
+function get(id){
+  return parseFloat(document.getElementById(id).value) || 0;
+}
 
-  if(!pla || !watt || !strom || !versch || !min || !mat){
+function calculate(){
+  let h = get("druckzeitStunden");
+  let m = get("druckzeitMinuten");
+
+  /* Minuten ↔ Stunden dynamisch */
+  while(m >= 60){ m -= 60; h++; }
+  while(m < 0){ m += 60; h--; }
+
+  h = Math.min(48, Math.max(0, h));
+  m = Math.min(59, Math.max(0, m));
+
+  druckzeitStunden.value = h;
+  druckzeitMinuten.value = m;
+
+  const pla = get("plaPreis");
+  const watt = get("leistung");
+  const strom = get("strompreis");
+  const versch = get("verschleiss");
+  const mat = get("material");
+  const min = h * 60 + m;
+
+  if(!pla || !watt || !strom || !versch || !mat || min <= 0){
     results.classList.remove("visible");
     return;
   }
 
-  const h = min / 60;
+  const hrs = min / 60;
   const mkv = (mat / 1000) * pla;
-  const skv = (watt / 1000) * h * strom;
-  const vkv = h * versch;
+  const skv = (watt / 1000) * hrs * strom;
+  const vkv = hrs * versch;
   const ges = mkv + skv + vkv;
 
   mk.textContent = mkv.toFixed(2);
