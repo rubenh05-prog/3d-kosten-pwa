@@ -14,19 +14,14 @@ body{
   justify-content:center;
   padding:16px;
 }
-.container{
-  width:100%;
-  max-width:360px;
-}
+.container{width:100%;max-width:360px;}
 .card{
   background:#fff;
   border-radius:12px;
   padding:16px;
   margin-bottom:14px;
 }
-.card.top{
-  border-top:6px solid #ffcc00;
-}
+.card.top{border-top:6px solid #ffcc00;}
 
 ul{list-style:none;padding:0;margin:0;}
 li{
@@ -36,10 +31,7 @@ li{
   margin-bottom:10px;
 }
 label{font-weight:600;}
-input{
-  width:110px;
-  padding:8px;
-}
+input{width:110px;padding:8px;}
 
 .results{display:none;}
 .results.visible{display:block;}
@@ -63,9 +55,7 @@ button{
   font-size:0.9em;
 }
 
-.details{
-  margin-top:10px;
-}
+.details{margin-top:10px;}
 .details.hidden{display:none;}
 </style>
 </head>
@@ -93,7 +83,7 @@ button{
   <button id="toggle">Details ▸</button>
 </div>
 
-<div>
+<div class="results-body">
 Material: <span id="mk">0.00</span> €<br>
 Strom: <span id="sk">0.00</span> €<br>
 Verschleiß: <span id="vk">0.00</span> €
@@ -116,7 +106,9 @@ const details=document.getElementById("details");
 
 toggle.onclick=()=>{
   details.classList.toggle("hidden");
-  toggle.textContent=details.classList.contains("hidden")?"Details ▸":"Details ▾";
+  toggle.textContent = details.classList.contains("hidden")
+    ? "Details ▸"
+    : "Details ▾";
 };
 
 inputs.forEach(i=>i.oninput=calc);
