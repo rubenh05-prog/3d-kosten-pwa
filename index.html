@@ -161,7 +161,7 @@ button:active{
 <li><label>Material (g)</label><input id="material" type="number"></li>
 </ul>
 
-<button onclick="resetAll()">🔄 Zurücksetzen</button>
+<button onclick="resetToDefaults()">🔄 Standardwerte wiederherstellen</button>
 </div>
 
 <div class="card results" id="results">
@@ -184,8 +184,17 @@ button:active{
 const inputs = document.querySelectorAll("input");
 const results = document.getElementById("results");
 const lastChange = document.getElementById("lastChange");
-
 const KEY = "druckkosten_state";
+
+const DEFAULTS = {
+  plaPreis: 22.5,
+  leistung: 130,
+  strompreis: 0.33,
+  verschleiss: 0.08,
+  druckzeitStunden: "",
+  druckzeitMinuten: "",
+  material: ""
+};
 
 inputs.forEach(i => i.addEventListener("input", () => {
   saveState();
@@ -204,8 +213,8 @@ function calculate(){
   h = Math.min(48, Math.max(0, h));
   m = Math.min(59, Math.max(0, m));
 
-  druckzeitStunden.value = h;
-  druckzeitMinuten.value = m;
+  druckzeitStunden.value = h || "";
+  druckzeitMinuten.value = m || "";
 
   const pla = get("plaPreis");
   const watt = get("leistung");
@@ -242,8 +251,11 @@ function saveState(){
 
 function loadState(){
   const data = JSON.parse(localStorage.getItem(KEY));
-  if(!data) return;
-  inputs.forEach(i => i.value = data[i.id] || "");
+  if(!data){
+    applyDefaults();
+    return;
+  }
+  inputs.forEach(i => i.value = data[i.id] ?? "");
   if(data.time) showTime(data.time);
   calculate();
 }
@@ -256,12 +268,17 @@ function showTime(t){
     d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
 }
 
-function resetAll(){
-  if(!confirm("Alle Werte zurücksetzen?")) return;
-  localStorage.removeItem(KEY);
-  inputs.forEach(i => i.value = "");
+function applyDefaults(){
+  Object.keys(DEFAULTS).forEach(id=>{
+    document.getElementById(id).value = DEFAULTS[id];
+  });
+  saveState();
   results.classList.remove("visible");
-  lastChange.textContent = "";
+}
+
+function resetToDefaults(){
+  if(!confirm("Standardwerte wiederherstellen?")) return;
+  applyDefaults();
 }
 
 loadState();
