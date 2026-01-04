@@ -1,24 +1,14 @@
-<!--
-STANDARD-BASISVERSION – 3D-Druck Kosten Rechner
-
-✔ Druckzeit mit Stunden & Minuten
-✔ Dynamische Umrechnung (Minuten ↔ Stunden)
-✔ Stunden: 0–48 | Minuten: 0–59
-✔ Keine Details / Keine Buttons / Keine Diagramme
-✔ Gesamtkosten mittig unterhalb der Einzelkosten
-✔ Plattformstabil (Desktop, iOS, Android, PWA)
-
-Diese Version dient als feste Referenzbasis.
-Änderungen oder Erweiterungen erfolgen nur bewusst und getrennt davon.
--->
 <!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>3D-Druck Kosten Rechner</title>
 
 <meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffcc00">
 
 <style>
 :root{
@@ -35,6 +25,11 @@ Diese Version dient als feste Referenzbasis.
     --text:#f1f1f1;
     --border:#333333;
   }
+}
+
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body{
@@ -54,7 +49,7 @@ body{
 
 .card{
   background:var(--card);
-  border-radius:12px;
+  border-radius:14px;
   padding:16px;
   margin-bottom:14px;
 }
@@ -62,27 +57,30 @@ body{
   border-top:6px solid var(--accent);
 }
 
-/* Eingaben */
 ul{list-style:none;padding:0;margin:0;}
 li{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:10px;
-  gap:8px;
+  margin-bottom:12px;
+  gap:10px;
 }
+
 label{
   font-weight:600;
+  font-size:16px;
   min-width:140px;
 }
 
 input{
-  width:110px;
-  padding:8px;
-  border-radius:6px;
+  width:120px;
+  padding:10px;
+  font-size:16px;
+  border-radius:8px;
   border:1px solid var(--border);
   background:var(--card);
   color:var(--text);
+  text-align:right;
 }
 
 .time-inputs{
@@ -90,29 +88,54 @@ input{
   gap:6px;
 }
 .time-inputs input{
-  width:52px;
+  width:56px;
   text-align:center;
 }
 
 /* Ergebnis */
 .results{
-  display:none;
+  opacity:0;
+  max-height:0;
+  overflow:hidden;
+  transition:.2s ease;
 }
 .results.visible{
-  display:block;
+  opacity:1;
+  max-height:300px;
 }
 
 .results-list div{
   text-align:center;
-  margin-bottom:4px;
+  margin-bottom:6px;
 }
 
 .results-total{
-  margin-top:10px;
+  margin-top:12px;
   text-align:center;
-  font-size:1.6em;
+  font-size:1.7em;
   font-weight:bold;
   color:var(--accent);
+}
+
+/* Footer */
+.footer{
+  text-align:center;
+  font-size:13px;
+  opacity:.7;
+}
+
+button{
+  margin-top:10px;
+  width:100%;
+  padding:10px;
+  font-size:15px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text);
+}
+button:active{
+  transform:scale(.98);
 }
 </style>
 </head>
@@ -120,13 +143,12 @@ input{
 <body>
 <div class="container">
 
-<!-- Eingaben -->
 <div class="card top">
 <ul>
-<li><label>Filament €/kg</label><input id="plaPreis" type="number" value="22.5"></li>
-<li><label>Leistung (W)</label><input id="leistung" type="number" value="130"></li>
-<li><label>Strom €/kWh</label><input id="strompreis" type="number" value="0.33"></li>
-<li><label>Verschleiß €/h</label><input id="verschleiss" type="number" value="0.08"></li>
+<li><label>Filament €/kg</label><input id="plaPreis" type="number"></li>
+<li><label>Leistung (W)</label><input id="leistung" type="number"></li>
+<li><label>Strom €/kWh</label><input id="strompreis" type="number"></li>
+<li><label>Verschleiß €/h</label><input id="verschleiss" type="number"></li>
 
 <li>
   <label>Druckzeit</label>
@@ -136,32 +158,39 @@ input{
   </div>
 </li>
 
-<li><label>Material (g)</label><input id="material" type="number" value="50"></li>
+<li><label>Material (g)</label><input id="material" type="number"></li>
 </ul>
+
+<button onclick="resetAll()">🔄 Zurücksetzen</button>
 </div>
 
-<!-- Ergebnis -->
 <div class="card results" id="results">
+  <div class="results-list">
+    <div>Material: <span id="mk">0.00</span> €</div>
+    <div>Strom: <span id="sk">0.00</span> €</div>
+    <div>Verschleiß: <span id="vk">0.00</span> €</div>
+  </div>
 
-<div class="results-list">
-<div>Material: <span id="mk">0.00</span> €</div>
-<div>Strom: <span id="sk">0.00</span> €</div>
-<div>Verschleiß: <span id="vk">0.00</span> €</div>
+  <div class="results-total">
+    Gesamt: <span id="gesamt">0.00</span> €
+  </div>
 </div>
 
-<div class="results-total">
-Gesamt: <span id="gesamt">0.00</span> €
-</div>
-
-</div>
+<div class="footer" id="lastChange"></div>
 
 </div>
 
 <script>
 const inputs = document.querySelectorAll("input");
 const results = document.getElementById("results");
+const lastChange = document.getElementById("lastChange");
 
-inputs.forEach(i => i.addEventListener("input", calculate));
+const KEY = "druckkosten_state";
+
+inputs.forEach(i => i.addEventListener("input", () => {
+  saveState();
+  calculate();
+}));
 
 function get(id){
   return parseFloat(document.getElementById(id).value) || 0;
@@ -171,10 +200,7 @@ function calculate(){
   let h = get("druckzeitStunden");
   let m = get("druckzeitMinuten");
 
-  /* Minuten ↔ Stunden dynamisch */
   while(m >= 60){ m -= 60; h++; }
-  while(m < 0){ m += 60; h--; }
-
   h = Math.min(48, Math.max(0, h));
   m = Math.min(59, Math.max(0, m));
 
@@ -194,18 +220,51 @@ function calculate(){
   }
 
   const hrs = min / 60;
-  const mkv = (mat / 1000) * pla;
-  const skv = (watt / 1000) * hrs * strom;
-  const vkv = hrs * versch;
-  const ges = mkv + skv + vkv;
-
-  mk.textContent = mkv.toFixed(2);
-  sk.textContent = skv.toFixed(2);
-  vk.textContent = vkv.toFixed(2);
-  gesamt.textContent = ges.toFixed(2);
+  mk.textContent = ((mat/1000)*pla).toFixed(2);
+  sk.textContent = ((watt/1000)*hrs*strom).toFixed(2);
+  vk.textContent = (hrs*versch).toFixed(2);
+  gesamt.textContent = (
+    (mat/1000)*pla +
+    (watt/1000)*hrs*strom +
+    hrs*versch
+  ).toFixed(2);
 
   results.classList.add("visible");
 }
+
+function saveState(){
+  const data = {};
+  inputs.forEach(i => data[i.id] = i.value);
+  data.time = new Date().toISOString();
+  localStorage.setItem(KEY, JSON.stringify(data));
+  showTime(data.time);
+}
+
+function loadState(){
+  const data = JSON.parse(localStorage.getItem(KEY));
+  if(!data) return;
+  inputs.forEach(i => i.value = data[i.id] || "");
+  if(data.time) showTime(data.time);
+  calculate();
+}
+
+function showTime(t){
+  const d = new Date(t);
+  lastChange.textContent =
+    "🕘 Letzte Änderung: " +
+    d.toLocaleDateString("de-DE") + " " +
+    d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+}
+
+function resetAll(){
+  if(!confirm("Alle Werte zurücksetzen?")) return;
+  localStorage.removeItem(KEY);
+  inputs.forEach(i => i.value = "");
+  results.classList.remove("visible");
+  lastChange.textContent = "";
+}
+
+loadState();
 </script>
 
 </body>
