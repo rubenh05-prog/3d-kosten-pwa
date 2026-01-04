@@ -52,10 +52,7 @@ li{
   gap:6px;
   margin-bottom:10px;
 }
-label{
-  font-weight:600;
-  min-width:130px;
-}
+label{font-weight:600;min-width:130px;}
 
 input{
   width:105px;
@@ -70,14 +67,13 @@ input{
 .time-inputs input{width:48px;text-align:center;}
 
 /* Ergebnisse */
-.results{display:none;contain:layout paint;}
+.results{display:none;}
 .results.visible{display:block;}
 
 .results-header{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:6px;
 }
 
 .results-total{
@@ -90,9 +86,9 @@ input{
   border:none;
   background:none;
   color:var(--muted);
-  font-size:0.8em;
+  font-size:0.85em;
   cursor:pointer;
-  padding:4px;
+  padding:4px 6px;
   white-space:nowrap;
 }
 
@@ -104,7 +100,7 @@ input{
 /* Details */
 .details{
   margin-top:10px;
-  font-size:0.88em;
+  font-size:0.9em;
 }
 .details.hidden{display:none;}
 
@@ -181,7 +177,6 @@ input{
 <div>Verschleiß: <span id="verschleissKosten">0.00</span> €</div>
 </div>
 
-<!-- Details – STANDARDMÄSSIG EINGEKLAPPT -->
 <div class="details hidden" id="details">
 
 <ul>
