@@ -15,6 +15,7 @@ body{
   padding:16px;
 }
 .container{width:100%;max-width:360px;}
+
 .card{
   background:#fff;
   border-radius:12px;
@@ -33,21 +34,29 @@ li{
 label{font-weight:600;}
 input{width:110px;padding:8px;}
 
-.results{display:none;}
-.results.visible{display:block;}
+/* Ergebnisbereich – NICHT display:none */
+.results{
+  max-height:0;
+  opacity:0;
+  overflow:hidden;
+  transition:opacity .25s ease,max-height .25s ease;
+}
+.results.visible{
+  max-height:500px;
+  opacity:1;
+}
 
+/* Header */
 .results-header{
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
-
 .results-total{
   font-size:1.5em;
   font-weight:bold;
   color:#ff9900;
 }
-
 button{
   border:none;
   background:none;
@@ -55,7 +64,10 @@ button{
   font-size:0.9em;
 }
 
-.details{margin-top:10px;}
+/* Details */
+.details{
+  margin-top:10px;
+}
 .details.hidden{display:none;}
 </style>
 </head>
@@ -83,7 +95,7 @@ button{
   <button id="toggle">Details ▸</button>
 </div>
 
-<div class="results-body">
+<div>
 Material: <span id="mk">0.00</span> €<br>
 Strom: <span id="sk">0.00</span> €<br>
 Verschleiß: <span id="vk">0.00</span> €
