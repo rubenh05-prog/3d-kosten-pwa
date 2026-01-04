@@ -5,25 +5,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>3D-Druck Kosten Rechner</title>
 
+<meta name="color-scheme" content="light dark">
+
 <style>
+:root{
+  --bg:#f4f4f4;
+  --card:#ffffff;
+  --text:#000000;
+  --border:#cccccc;
+  --accent:#ffcc00;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#121212;
+    --card:#1e1e1e;
+    --text:#f1f1f1;
+    --border:#333333;
+  }
+}
+
 body{
   margin:0;
   font-family:Arial,sans-serif;
-  background:#f4f4f4;
+  background:var(--bg);
+  color:var(--text);
   display:flex;
   justify-content:center;
   padding:16px;
 }
-.container{width:100%;max-width:360px;}
+
+.container{
+  width:100%;
+  max-width:360px;
+}
 
 .card{
-  background:#fff;
+  background:var(--card);
   border-radius:12px;
   padding:16px;
   margin-bottom:14px;
 }
-.card.top{border-top:6px solid #ffcc00;}
+.card.top{
+  border-top:6px solid var(--accent);
+}
 
+/* Eingaben */
 ul{list-style:none;padding:0;margin:0;}
 li{
   display:flex;
@@ -31,129 +57,106 @@ li{
   align-items:center;
   margin-bottom:10px;
 }
-label{font-weight:600;}
-input{width:110px;padding:8px;}
+label{
+  font-weight:600;
+}
+input{
+  width:110px;
+  padding:8px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:var(--card);
+  color:var(--text);
+}
 
-/* Ergebnisbereich – NICHT display:none */
+/* Ergebnis */
 .results{
-  max-height:0;
-  opacity:0;
-  overflow:hidden;
-  transition:opacity .25s ease,max-height .25s ease;
+  display:none;
 }
 .results.visible{
-  max-height:500px;
-  opacity:1;
+  display:block;
 }
 
-/* Header */
-.results-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+.results-list div{
+  text-align:center;
+  margin-bottom:4px;
 }
+
 .results-total{
-  font-size:1.5em;
-  font-weight:bold;
-  color:#ff9900;
-}
-button{
-  border:none;
-  background:none;
-  cursor:pointer;
-  font-size:0.9em;
-}
-
-/* Details */
-.details{
   margin-top:10px;
+  text-align:center;
+  font-size:1.6em;
+  font-weight:bold;
+  color:var(--accent);
 }
-.details.hidden{display:none;}
 </style>
 </head>
 
 <body>
 <div class="container">
 
+<!-- Eingaben -->
 <div class="card top">
 <ul>
-<li><label>Filament €/kg</label><input id="plaPreis" value="22.5"></li>
-<li><label>Leistung (W)</label><input id="leistung" value="130"></li>
-<li><label>Strom €/kWh</label><input id="strompreis" value="0.33"></li>
-<li><label>Verschleiß €/h</label><input id="verschleiss" value="0.08"></li>
-<li><label>Druckzeit (min)</label><input id="druckzeit" value="60"></li>
-<li><label>Material (g)</label><input id="material" value="50"></li>
+<li><label>Filament €/kg</label><input id="plaPreis" type="number" value="22.5"></li>
+<li><label>Leistung (W)</label><input id="leistung" type="number" value="130"></li>
+<li><label>Strom €/kWh</label><input id="strompreis" type="number" value="0.33"></li>
+<li><label>Verschleiß €/h</label><input id="verschleiss" type="number" value="0.08"></li>
+<li><label>Druckzeit (min)</label><input id="druckzeit" type="number" value="60"></li>
+<li><label>Material (g)</label><input id="material" type="number" value="50"></li>
 </ul>
 </div>
 
+<!-- Ergebnis -->
 <div class="card results" id="results">
 
-<div class="results-header">
-  <div class="results-total">
-    Gesamt: <span id="gesamt">0.00</span> €
-  </div>
-  <button id="toggle">Details ▸</button>
+<div class="results-list">
+<div>Material: <span id="mk">0.00</span> €</div>
+<div>Strom: <span id="sk">0.00</span> €</div>
+<div>Verschleiß: <span id="vk">0.00</span> €</div>
 </div>
 
-<div>
-Material: <span id="mk">0.00</span> €<br>
-Strom: <span id="sk">0.00</span> €<br>
-Verschleiß: <span id="vk">0.00</span> €
-</div>
-
-<div class="details hidden" id="details">
-<hr>
-Kosten pro Stunde: <span id="ph">–</span> €<br>
-Kosten pro Gramm: <span id="pg">–</span> €
+<div class="results-total">
+Gesamt: <span id="gesamt">0.00</span> €
 </div>
 
 </div>
+
 </div>
 
 <script>
-const inputs=document.querySelectorAll("input");
-const results=document.getElementById("results");
-const toggle=document.getElementById("toggle");
-const details=document.getElementById("details");
+const inputs = document.querySelectorAll("input");
+const results = document.getElementById("results");
 
-toggle.onclick=()=>{
-  details.classList.toggle("hidden");
-  toggle.textContent = details.classList.contains("hidden")
-    ? "Details ▸"
-    : "Details ▾";
-};
+inputs.forEach(i => i.addEventListener("input", calculate));
 
-inputs.forEach(i=>i.oninput=calc);
+function calculate(){
+  const pla = +plaPreis.value;
+  const watt = +leistung.value;
+  const strom = +strompreis.value;
+  const versch = +verschleiss.value;
+  const min = +druckzeit.value;
+  const mat = +material.value;
 
-function calc(){
-  const pla=+plaPreis.value;
-  const watt=+leistung.value;
-  const strom=+strompreis.value;
-  const versch=+verschleiss.value;
-  const min=+druckzeit.value;
-  const mat=+material.value;
-
-  if(!pla||!watt||!strom||!versch||!min||!mat){
+  if(!pla || !watt || !strom || !versch || !min || !mat){
     results.classList.remove("visible");
     return;
   }
 
-  const h=min/60;
-  const mkv=(mat/1000)*pla;
-  const skv=(watt/1000)*h*strom;
-  const vkv=h*versch;
-  const ges=mkv+skv+vkv;
+  const h = min / 60;
+  const mkv = (mat / 1000) * pla;
+  const skv = (watt / 1000) * h * strom;
+  const vkv = h * versch;
+  const ges = mkv + skv + vkv;
 
-  mk.textContent=mkv.toFixed(2);
-  sk.textContent=skv.toFixed(2);
-  vk.textContent=vkv.toFixed(2);
-  gesamt.textContent=ges.toFixed(2);
-
-  ph.textContent=(ges/h).toFixed(2);
-  pg.textContent=(ges/mat).toFixed(3);
+  mk.textContent = mkv.toFixed(2);
+  sk.textContent = skv.toFixed(2);
+  vk.textContent = vkv.toFixed(2);
+  gesamt.textContent = ges.toFixed(2);
 
   results.classList.add("visible");
 }
 </script>
+
 </body>
 </html>
