@@ -23,12 +23,12 @@ body{
   color:var(--text);
   display:flex;
   justify-content:center;
-  padding:16px;
+  padding:14px;
 }
 
 .container{
   width:100%;
-  max-width:360px;
+  max-width:340px;
   display:flex;
   flex-direction:column;
   gap:14px;
@@ -37,7 +37,7 @@ body{
 .card{
   background:var(--card);
   border-radius:12px;
-  padding:18px;
+  padding:16px;
 }
 .card.top{
   border-top:6px solid var(--accent);
@@ -45,33 +45,43 @@ body{
 
 /* Eingaben */
 ul{list-style:none;padding:0;margin:0;}
-li{display:flex;justify-content:space-between;gap:8px;margin-bottom:10px;}
-label{font-weight:600;min-width:145px;}
+li{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:6px;
+  margin-bottom:10px;
+}
+label{
+  font-weight:600;
+  min-width:130px;
+}
 
 input{
-  width:110px;
-  padding:10px;
+  width:105px;
+  padding:8px;
   border-radius:8px;
   border:1px solid var(--border);
   background:var(--card);
   color:var(--text);
 }
 
-.time-inputs{display:flex;gap:6px;}
-.time-inputs input{width:52px;text-align:center;}
+.time-inputs{display:flex;gap:4px;}
+.time-inputs input{width:48px;text-align:center;}
 
 /* Ergebnisse */
-.results{display:none;}
+.results{display:none;contain:layout paint;}
 .results.visible{display:block;}
 
 .results-header{
   display:flex;
   align-items:center;
   justify-content:space-between;
+  gap:6px;
 }
 
 .results-total{
-  font-size:1.6em;
+  font-size:1.5em;
   font-weight:bold;
   color:var(--accent);
 }
@@ -80,9 +90,10 @@ input{
   border:none;
   background:none;
   color:var(--muted);
-  font-size:0.85em;
+  font-size:0.8em;
   cursor:pointer;
-  padding:4px 6px;
+  padding:4px;
+  white-space:nowrap;
 }
 
 .results-list div{
@@ -93,7 +104,7 @@ input{
 /* Details */
 .details{
   margin-top:10px;
-  font-size:0.9em;
+  font-size:0.88em;
 }
 .details.hidden{display:none;}
 
@@ -115,8 +126,8 @@ input{
 }
 .bar-bg{
   width:100%;
-  height:16px;
-  border-radius:8px;
+  height:14px;
+  border-radius:7px;
   background:rgba(0,0,0,.1);
   overflow:hidden;
 }
@@ -125,7 +136,7 @@ input{
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:.7em;
+  font-size:.65em;
   font-weight:bold;
 }
 .bar.diff{background:#ffcc00;color:#000;}
@@ -161,7 +172,7 @@ input{
   <div class="results-total">
     Gesamt: <span id="gesamtKosten">0.00</span> €
   </div>
-  <button class="toggle-btn" id="toggleDetails">Details ▾</button>
+  <button class="toggle-btn" id="toggleDetails">Details ▸</button>
 </div>
 
 <div class="results-list">
@@ -170,7 +181,8 @@ input{
 <div>Verschleiß: <span id="verschleissKosten">0.00</span> €</div>
 </div>
 
-<div class="details" id="details">
+<!-- Details – STANDARDMÄSSIG EINGEKLAPPT -->
+<div class="details hidden" id="details">
 
 <ul>
 <li><span>Maschinenstundensatz</span> <strong><span id="rateHour">–</span> €/h</strong></li>
@@ -182,18 +194,12 @@ input{
 <div class="bar-wrap" id="barWrap">
 
 <div class="bar-row" id="barMS">
-<div class="bar-label">
-<span>Material ↔ Strom</span>
-<span id="msText"></span>
-</div>
+<div class="bar-label"><span>Material ↔ Strom</span><span id="msText"></span></div>
 <div class="bar-bg"><div class="bar diff" id="barDiff"></div></div>
 </div>
 
 <div class="bar-row" id="barMG">
-<div class="bar-label">
-<span>Materialanteil</span>
-<span id="mgText"></span>
-</div>
+<div class="bar-label"><span>Materialanteil</span><span id="mgText"></span></div>
 <div class="bar-bg"><div class="bar total" id="barTotal"></div></div>
 </div>
 
