@@ -1,6 +1,6 @@
 {
   "name": "3D-Druck Kosten Rechner",
-  "short_name": "3D-Druck",
+  "short_name": "3D-Kosten",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
