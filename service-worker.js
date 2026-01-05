@@ -1,308 +1,44 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8">
+const CACHE = "3d-druck-pwa-v2.2";
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+const FILES = [
+  "./",
+  "./index.html",
+  "./manifest.json"
+];
 
-<title>3D-Druck Kosten Rechner</title>
+/* INSTALL */
+self.addEventListener("install", event => {
+  event.waitUntil(
+    caches.open(CACHE).then(cache => cache.addAll(FILES))
+  );
+  self.skipWaiting();
+});
 
-<!-- iOS PWA -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="3D-Druck">
-<link rel="apple-touch-icon" href="icon-192.png">
+/* ACTIVATE */
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(key => key !== CACHE).map(key => caches.delete(key))
+      )
+    )
+  );
+  self.clients.claim();
+});
 
-<!-- Manifest -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffcc00">
-<meta name="color-scheme" content="light dark">
+/* FETCH – Network First (iOS-sicher) */
+self.addEventListener("fetch", event => {
+  if (event.request.method !== "GET") return;
 
-<style>
-:root{
-  --bg:#f4f4f4;
-  --card:#ffffff;
-  --text:#000000;
-  --border:#cccccc;
-  --accent:#ffcc00;
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#121212;
-    --card:#1e1e1e;
-    --text:#f1f1f1;
-    --border:#333333;
-  }
-}
-
-*{
-  box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent;
-}
-
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  display:flex;
-  justify-content:center;
-  padding:16px;
-}
-
-.container{
-  width:100%;
-  max-width:360px;
-}
-
-/* Karten */
-.card{
-  background:var(--card);
-  border-radius:14px;
-  padding:16px;
-}
-
-.card.top{
-  border-top:6px solid var(--accent);
-  margin-bottom:6px;
-}
-
-.card.results{
-  margin-bottom:6px;
-}
-
-.card.results:not(.visible){
-  margin-bottom:0;
-}
-
-/* Eingaben */
-ul{list-style:none;padding:0;margin:0;}
-li{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:12px;
-  gap:10px;
-}
-
-label{
-  font-weight:600;
-  font-size:16px;
-  min-width:140px;
-}
-
-input{
-  width:120px;
-  padding:10px;
-  font-size:16px;
-  border-radius:8px;
-  border:1px solid var(--border);
-  background:var(--card);
-  color:var(--text);
-  text-align:right;
-}
-
-.time-inputs{
-  display:flex;
-  gap:6px;
-}
-.time-inputs input{
-  width:56px;
-  text-align:center;
-}
-
-/* Ergebnisse */
-.results{
-  opacity:0;
-  max-height:0;
-  overflow:hidden;
-  transition:.2s ease;
-}
-
-.results.visible{
-  opacity:1;
-  max-height:400px;
-}
-
-.results-list div{
-  text-align:center;
-  margin-bottom:6px;
-}
-
-.results-total{
-  margin-top:12px;
-  text-align:center;
-  font-size:1.7em;
-  font-weight:bold;
-  color:var(--accent);
-}
-
-/* Footer */
-.footer{
-  text-align:center;
-  font-size:13px;
-  opacity:.7;
-  margin-top:4px;
-}
-
-/* Button */
-button{
-  margin-top:10px;
-  width:100%;
-  padding:10px;
-  font-size:15px;
-  border-radius:8px;
-  border:1px solid var(--border);
-  background:transparent;
-  color:var(--text);
-}
-button:active{
-  transform:scale(.98);
-}
-</style>
-</head>
-
-<body>
-<div class="container">
-
-<!-- Eingaben -->
-<div class="card top">
-<ul>
-<li><label>Filament €/kg</label><input id="plaPreis" type="number"></li>
-<li><label>Leistung (W)</label><input id="leistung" type="number"></li>
-<li><label>Strom €/kWh</label><input id="strompreis" type="number"></li>
-<li><label>Verschleiß €/h</label><input id="verschleiss" type="number"></li>
-
-<li>
-  <label>Druckzeit</label>
-  <div class="time-inputs">
-    <input id="druckzeitStunden" type="number" placeholder="h">
-    <input id="druckzeitMinuten" type="number" placeholder="min">
-  </div>
-</li>
-
-<li><label>Material (g)</label><input id="material" type="number"></li>
-</ul>
-
-<button onclick="resetToDefaults()">🔄 Standardwerte wiederherstellen</button>
-</div>
-
-<!-- Kostenübersicht -->
-<div class="card results" id="results">
-  <div class="results-list">
-    <div>Material: <span id="mk">0.00</span> €</div>
-    <div>Strom: <span id="sk">0.00</span> €</div>
-    <div>Verschleiß: <span id="vk">0.00</span> €</div>
-  </div>
-
-  <div class="results-total">
-    Gesamt: <span id="gesamt">0.00</span> €
-  </div>
-</div>
-
-<!-- Letzte Änderung -->
-<div class="footer" id="lastChange"></div>
-
-</div>
-
-<script>
-const KEY="druckkosten_state";
-
-const DEFAULTS={
-  plaPreis:22.5,
-  leistung:130,
-  strompreis:0.33,
-  verschleiss:0.08,
-  druckzeitStunden:"",
-  druckzeitMinuten:"",
-  material:""
-};
-
-const inputs=document.querySelectorAll("input");
-const results=document.getElementById("results");
-const lastChange=document.getElementById("lastChange");
-
-inputs.forEach(i=>i.addEventListener("input",()=>{save();calc();}));
-
-function get(id){
-  return parseFloat(document.getElementById(id).value)||0;
-}
-
-function calc(){
-  const h=get("druckzeitStunden");
-  const m=get("druckzeitMinuten");
-  const min=h*60+m;
-
-  const pla=get("plaPreis");
-  const watt=get("leistung");
-  const strom=get("strompreis");
-  const versch=get("verschleiss");
-  const mat=get("material");
-
-  if(!pla||!watt||!strom||!versch||!mat||min<=0){
-    results.classList.remove("visible");
-    return;
-  }
-
-  const hrs=min/60;
-  const mkv=(mat/1000)*pla;
-  const skv=(watt/1000)*hrs*strom;
-  const vkv=hrs*versch;
-  const ges=mkv+skv+vkv;
-
-  mk.textContent=mkv.toFixed(2);
-  sk.textContent=skv.toFixed(2);
-  vk.textContent=vkv.toFixed(2);
-  gesamt.textContent=ges.toFixed(2);
-
-  results.classList.add("visible");
-}
-
-function save(){
-  const d={};
-  inputs.forEach(i=>d[i.id]=i.value);
-  d.time=new Date().toISOString();
-  localStorage.setItem(KEY,JSON.stringify(d));
-
-  const t=new Date(d.time);
-  lastChange.textContent=
-    "🕘 Letzte Änderung: "+
-    t.toLocaleDateString("de-DE")+" "+
-    t.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
-}
-
-function load(){
-  const d=JSON.parse(localStorage.getItem(KEY));
-  if(!d){resetToDefaults(false);return;}
-  inputs.forEach(i=>i.value=d[i.id]||"");
-  if(d.time){
-    const t=new Date(d.time);
-    lastChange.textContent=
-      "🕘 Letzte Änderung: "+
-      t.toLocaleDateString("de-DE")+" "+
-      t.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
-  }
-  calc();
-}
-
-function resetToDefaults(confirmUser=true){
-  if(confirmUser&&!confirm("Standardwerte wiederherstellen?"))return;
-  Object.keys(DEFAULTS).forEach(id=>{
-    document.getElementById(id).value=DEFAULTS[id];
-  });
-  save();
-  results.classList.remove("visible");
-}
-
-load();
-
-/* Service Worker */
-if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>{
-    navigator.serviceWorker.register("sw.js");
-  });
-}
-</script>
-</body>
-</html>
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        const copy = response.clone();
+        caches.open(CACHE).then(cache => {
+          cache.put(event.request, copy);
+        });
+        return response;
+      })
+      .catch(() => caches.match(event.request))
+  );
+});
