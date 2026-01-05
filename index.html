@@ -8,13 +8,11 @@
 
 <title>3D-Druck Kosten Rechner</title>
 
-<!-- iOS PWA -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="3D-Druck">
 <link rel="apple-touch-icon" href="icon-192.png">
 
-<!-- Manifest -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ffcc00">
 <meta name="color-scheme" content="light dark">
@@ -36,10 +34,7 @@
   }
 }
 
-*{
-  box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent;
-}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 
 body{
   margin:0;
@@ -51,32 +46,17 @@ body{
   padding:16px;
 }
 
-.container{
-  width:100%;
-  max-width:380px;
-}
+.container{width:100%;max-width:380px;}
 
-/* Karten */
 .card{
   background:var(--card);
   border-radius:14px;
   padding:16px;
 }
+.card.top{border-top:6px solid var(--accent);margin-bottom:6px;}
+.card.results{margin-bottom:6px;}
+.card.results:not(.visible){margin-bottom:0;}
 
-.card.top{
-  border-top:6px solid var(--accent);
-  margin-bottom:6px;
-}
-
-.card.results{
-  margin-bottom:6px;
-}
-
-.card.results:not(.visible){
-  margin-bottom:0;
-}
-
-/* Eingaben */
 ul{list-style:none;padding:0;margin:0;}
 
 li{
@@ -86,16 +66,12 @@ li{
   gap:18px;
 }
 
-label{
-  flex:1;
-  font-weight:600;
-  font-size:16px;
-}
+label{flex:1;font-weight:600;font-size:16px;}
 
 .input-wrap{
   flex:0 0 150px;
   display:flex;
-  justify-content:center; /* 🔑 mittiger */
+  justify-content:center;
 }
 
 input{
@@ -106,19 +82,12 @@ input{
   border:1px solid var(--border);
   background:var(--card);
   color:var(--text);
-  text-align:center; /* 🔑 Zahl mittig */
+  text-align:center;
 }
 
-/* Zeit */
-.time-inputs{
-  display:flex;
-  gap:8px;
-}
-.time-inputs input{
-  width:62px;
-}
+.time-inputs{display:flex;gap:8px;}
+.time-inputs input{width:62px;}
 
-/* Ergebnisse */
 .results{
   opacity:0;
   max-height:0;
@@ -127,7 +96,7 @@ input{
 }
 .results.visible{
   opacity:1;
-  max-height:400px;
+  max-height:600px;
 }
 
 .results-list div{
@@ -143,7 +112,6 @@ input{
   color:var(--accent);
 }
 
-/* Footer */
 .footer{
   text-align:center;
   font-size:13px;
@@ -151,7 +119,6 @@ input{
   margin-top:4px;
 }
 
-/* Button */
 button{
   margin-top:10px;
   width:100%;
@@ -162,37 +129,22 @@ button{
   background:transparent;
   color:var(--text);
 }
-button:active{
-  transform:scale(.98);
-}
+button:active{transform:scale(.98);}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<!-- Eingaben -->
 <div class="card top">
 <ul>
-<li>
-  <label>Filament €/kg</label>
-  <div class="input-wrap"><input id="plaPreis" type="number"></div>
-</li>
+<li><label>Filament €/kg</label><div class="input-wrap"><input id="plaPreis" type="number"></div></li>
+<li><label>Leistung (W)</label><div class="input-wrap"><input id="leistung" type="number"></div></li>
+<li><label>Strom €/kWh</label><div class="input-wrap"><input id="strompreis" type="number"></div></li>
+<li><label>Verschleiß €/h</label><div class="input-wrap"><input id="verschleiss" type="number"></div></li>
 
-<li>
-  <label>Leistung (W)</label>
-  <div class="input-wrap"><input id="leistung" type="number"></div>
-</li>
-
-<li>
-  <label>Strom €/kWh</label>
-  <div class="input-wrap"><input id="strompreis" type="number"></div>
-</li>
-
-<li>
-  <label>Verschleiß €/h</label>
-  <div class="input-wrap"><input id="verschleiss" type="number"></div>
-</li>
+<li><label>Fehldruck-Puffer (%)</label><div class="input-wrap"><input id="fehlerProzent" type="number"></div></li>
+<li><label>Wartung & Pflege €/h</label><div class="input-wrap"><input id="wartung" type="number"></div></li>
 
 <li>
   <label>Druckzeit</label>
@@ -202,21 +154,19 @@ button:active{
   </div>
 </li>
 
-<li>
-  <label>Material (g)</label>
-  <div class="input-wrap"><input id="material" type="number"></div>
-</li>
+<li><label>Material (g)</label><div class="input-wrap"><input id="material" type="number"></div></li>
 </ul>
 
 <button onclick="resetToDefaults()">🔄 Standardwerte wiederherstellen</button>
 </div>
 
-<!-- Kostenübersicht -->
 <div class="card results" id="results">
   <div class="results-list">
     <div>Material: <span id="mk">0.00</span> €</div>
+    <div>Fehldruck-Puffer: <span id="fk">0.00</span> €</div>
     <div>Strom: <span id="sk">0.00</span> €</div>
     <div>Verschleiß: <span id="vk">0.00</span> €</div>
+    <div>Wartung & Pflege: <span id="wk">0.00</span> €</div>
   </div>
 
   <div class="results-total">
@@ -225,7 +175,6 @@ button:active{
 </div>
 
 <div class="footer" id="lastChange"></div>
-
 </div>
 
 <script>
@@ -236,6 +185,8 @@ const DEFAULTS={
   leistung:130,
   strompreis:0.35,
   verschleiss:0.05,
+  fehlerProzent:5,
+  wartung:0.015,
   druckzeitStunden:"",
   druckzeitMinuten:"",
   material:""
@@ -247,11 +198,8 @@ const lastChange=document.getElementById("lastChange");
 
 inputs.forEach(i=>i.addEventListener("input",()=>{save();calc();}));
 
-function get(id){
-  return parseFloat(document.getElementById(id).value)||0;
-}
+function get(id){return parseFloat(document.getElementById(id).value)||0;}
 
-/* Zeitverrechnung korrekt */
 function calc(){
   let h=get("druckzeitStunden");
   let m=get("druckzeitMinuten");
@@ -269,6 +217,8 @@ function calc(){
   const watt=get("leistung");
   const strom=get("strompreis");
   const versch=get("verschleiss");
+  const fehlerP=get("fehlerProzent");
+  const wart=get("wartung");
   const mat=get("material");
   const min=h*60+m;
 
@@ -278,13 +228,24 @@ function calc(){
   }
 
   const hrs=min/60;
-  mk.textContent=((mat/1000)*pla).toFixed(2);
-  sk.textContent=((watt/1000)*hrs*strom).toFixed(2);
-  vk.textContent=(hrs*versch).toFixed(2);
+  const materialKosten=(mat/1000)*pla;
+  const fehlerKosten=materialKosten*(fehlerP/100);
+  const stromKosten=(watt/1000)*hrs*strom;
+  const verschKosten=hrs*versch;
+  const wartKosten=hrs*wart;
+
+  mk.textContent=materialKosten.toFixed(2);
+  fk.textContent=fehlerKosten.toFixed(2);
+  sk.textContent=stromKosten.toFixed(2);
+  vk.textContent=verschKosten.toFixed(2);
+  wk.textContent=wartKosten.toFixed(2);
+
   gesamt.textContent=(
-    (mat/1000)*pla +
-    (watt/1000)*hrs*strom +
-    hrs*versch
+    materialKosten+
+    fehlerKosten+
+    stromKosten+
+    verschKosten+
+    wartKosten
   ).toFixed(2);
 
   results.classList.add("visible");
@@ -297,8 +258,7 @@ function save(){
   localStorage.setItem(KEY,JSON.stringify(d));
 
   const t=new Date(d.time);
-  lastChange.textContent=
-    "🕘 Letzte Änderung: "+
+  lastChange.textContent="🕘 Letzte Änderung: "+
     t.toLocaleDateString("de-DE")+" "+
     t.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
 }
@@ -309,8 +269,7 @@ function load(){
   inputs.forEach(i=>i.value=d[i.id]||"");
   if(d.time){
     const t=new Date(d.time);
-    lastChange.textContent=
-      "🕘 Letzte Änderung: "+
+    lastChange.textContent="🕘 Letzte Änderung: "+
       t.toLocaleDateString("de-DE")+" "+
       t.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
   }
@@ -328,7 +287,6 @@ function resetToDefaults(confirmUser=true){
 
 load();
 
-/* Service Worker */
 if("serviceWorker"in navigator){
   window.addEventListener("load",()=>{
     navigator.serviceWorker.register("service-worker.js");
