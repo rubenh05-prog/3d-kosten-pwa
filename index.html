@@ -78,38 +78,44 @@ body{
 
 /* Eingaben */
 ul{list-style:none;padding:0;margin:0;}
+
 li{
   display:flex;
-  justify-content:space-between;
   align-items:center;
   margin-bottom:12px;
-  gap:14px;
+  gap:18px;
 }
 
 label{
+  flex:1;
   font-weight:600;
   font-size:16px;
-  min-width:150px;
+}
+
+.input-wrap{
+  flex:0 0 150px;
+  display:flex;
+  justify-content:center; /* 🔑 mittiger */
 }
 
 input{
-  width:140px;
+  width:130px;
   padding:10px;
   font-size:16px;
   border-radius:8px;
   border:1px solid var(--border);
   background:var(--card);
   color:var(--text);
-  text-align:right;
+  text-align:center; /* 🔑 Zahl mittig */
 }
 
+/* Zeit */
 .time-inputs{
   display:flex;
   gap:8px;
 }
 .time-inputs input{
-  width:64px;
-  text-align:center;
+  width:62px;
 }
 
 /* Ergebnisse */
@@ -168,20 +174,38 @@ button:active{
 <!-- Eingaben -->
 <div class="card top">
 <ul>
-<li><label>Filament €/kg</label><input id="plaPreis" type="number"></li>
-<li><label>Leistung (W)</label><input id="leistung" type="number"></li>
-<li><label>Strom €/kWh</label><input id="strompreis" type="number"></li>
-<li><label>Verschleiß €/h</label><input id="verschleiss" type="number"></li>
+<li>
+  <label>Filament €/kg</label>
+  <div class="input-wrap"><input id="plaPreis" type="number"></div>
+</li>
+
+<li>
+  <label>Leistung (W)</label>
+  <div class="input-wrap"><input id="leistung" type="number"></div>
+</li>
+
+<li>
+  <label>Strom €/kWh</label>
+  <div class="input-wrap"><input id="strompreis" type="number"></div>
+</li>
+
+<li>
+  <label>Verschleiß €/h</label>
+  <div class="input-wrap"><input id="verschleiss" type="number"></div>
+</li>
 
 <li>
   <label>Druckzeit</label>
-  <div class="time-inputs">
+  <div class="input-wrap time-inputs">
     <input id="druckzeitStunden" type="number" placeholder="h">
     <input id="druckzeitMinuten" type="number" placeholder="min">
   </div>
 </li>
 
-<li><label>Material (g)</label><input id="material" type="number"></li>
+<li>
+  <label>Material (g)</label>
+  <div class="input-wrap"><input id="material" type="number"></div>
+</li>
 </ul>
 
 <button onclick="resetToDefaults()">🔄 Standardwerte wiederherstellen</button>
@@ -200,119 +224,103 @@ button:active{
   </div>
 </div>
 
-<!-- Letzte Änderung -->
 <div class="footer" id="lastChange"></div>
 
 </div>
 
 <script>
-const KEY = "druckkosten_state";
+const KEY="druckkosten_state";
 
-const DEFAULTS = {
-  plaPreis: 22.5,
-  leistung: 130,
-  strompreis: 0.33,
-  verschleiss: 0.07,
-  druckzeitStunden: "",
-  druckzeitMinuten: "",
-  material: ""
+const DEFAULTS={
+  plaPreis:22.5,
+  leistung:130,
+  strompreis:0.33,
+  verschleiss:0.07,
+  druckzeitStunden:"",
+  druckzeitMinuten:"",
+  material:""
 };
 
-const inputs = document.querySelectorAll("input");
-const results = document.getElementById("results");
-const lastChange = document.getElementById("lastChange");
+const inputs=document.querySelectorAll("input");
+const results=document.getElementById("results");
+const lastChange=document.getElementById("lastChange");
 
-inputs.forEach(i =>
-  i.addEventListener("input", () => {
-    save();
-    calc();
-  })
-);
+inputs.forEach(i=>i.addEventListener("input",()=>{save();calc();}));
 
 function get(id){
-  return parseFloat(document.getElementById(id).value) || 0;
+  return parseFloat(document.getElementById(id).value)||0;
 }
 
-/* ✅ KORREKTE ZEIT-VERRECHNUNG */
+/* Zeitverrechnung korrekt */
 function calc(){
-  let h = get("druckzeitStunden");
-  let m = get("druckzeitMinuten");
+  let h=get("druckzeitStunden");
+  let m=get("druckzeitMinuten");
 
-  while (m >= 60) {
-    m -= 60;
-    h++;
-  }
-  while (m < 0) {
-    m += 60;
-    h--;
-  }
+  while(m>=60){m-=60;h++;}
+  while(m<0){m+=60;h--;}
 
-  h = Math.min(48, Math.max(0, h));
-  m = Math.min(59, Math.max(0, m));
+  h=Math.min(48,Math.max(0,h));
+  m=Math.min(59,Math.max(0,m));
 
-  document.getElementById("druckzeitStunden").value = h || "";
-  document.getElementById("druckzeitMinuten").value = m || "";
+  druckzeitStunden.value=h||"";
+  druckzeitMinuten.value=m||"";
 
-  const pla = get("plaPreis");
-  const watt = get("leistung");
-  const strom = get("strompreis");
-  const versch = get("verschleiss");
-  const mat = get("material");
-  const min = h * 60 + m;
+  const pla=get("plaPreis");
+  const watt=get("leistung");
+  const strom=get("strompreis");
+  const versch=get("verschleiss");
+  const mat=get("material");
+  const min=h*60+m;
 
-  if (!pla || !watt || !strom || !versch || !mat || min <= 0) {
+  if(!pla||!watt||!strom||!versch||!mat||min<=0){
     results.classList.remove("visible");
     return;
   }
 
-  const hrs = min / 60;
-  const mkv = (mat / 1000) * pla;
-  const skv = (watt / 1000) * hrs * strom;
-  const vkv = hrs * versch;
-  const ges = mkv + skv + vkv;
-
-  mk.textContent = mkv.toFixed(2);
-  sk.textContent = skv.toFixed(2);
-  vk.textContent = vkv.toFixed(2);
-  gesamt.textContent = ges.toFixed(2);
+  const hrs=min/60;
+  mk.textContent=((mat/1000)*pla).toFixed(2);
+  sk.textContent=((watt/1000)*hrs*strom).toFixed(2);
+  vk.textContent=(hrs*versch).toFixed(2);
+  gesamt.textContent=(
+    (mat/1000)*pla +
+    (watt/1000)*hrs*strom +
+    hrs*versch
+  ).toFixed(2);
 
   results.classList.add("visible");
 }
 
 function save(){
-  const d = {};
-  inputs.forEach(i => d[i.id] = i.value);
-  d.time = new Date().toISOString();
-  localStorage.setItem(KEY, JSON.stringify(d));
+  const d={};
+  inputs.forEach(i=>d[i.id]=i.value);
+  d.time=new Date().toISOString();
+  localStorage.setItem(KEY,JSON.stringify(d));
 
-  const t = new Date(d.time);
-  lastChange.textContent =
-    "🕘 Letzte Änderung: " +
-    t.toLocaleDateString("de-DE") + " " +
-    t.toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
+  const t=new Date(d.time);
+  lastChange.textContent=
+    "🕘 Letzte Änderung: "+
+    t.toLocaleDateString("de-DE")+" "+
+    t.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
 }
 
 function load(){
-  const d = JSON.parse(localStorage.getItem(KEY));
-  if (!d) {
-    resetToDefaults(false);
-    return;
-  }
-  inputs.forEach(i => i.value = d[i.id] || "");
-  if (d.time) {
-    const t = new Date(d.time);
-    lastChange.textContent =
-      "🕘 Letzte Änderung: " +
-      t.toLocaleDateString("de-DE") + " " +
-      t.toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
+  const d=JSON.parse(localStorage.getItem(KEY));
+  if(!d){resetToDefaults(false);return;}
+  inputs.forEach(i=>i.value=d[i.id]||"");
+  if(d.time){
+    const t=new Date(d.time);
+    lastChange.textContent=
+      "🕘 Letzte Änderung: "+
+      t.toLocaleDateString("de-DE")+" "+
+      t.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
   }
   calc();
 }
 
-function resetToDefaults(confirmUser = true){
-  if (confirmUser && !confirm("Standardwerte wiederherstellen?")) return;
-  Object.keys(DEFAULTS).forEach(id => {
-    document.getElementById(id).value = DEFAULTS[id];
+function resetToDefaults(confirmUser=true){
+  if(confirmUser&&!confirm("Standardwerte wiederherstellen?"))return;
+  Object.keys(DEFAULTS).forEach(id=>{
+    document.getElementById(id).value=DEFAULTS[id];
   });
   save();
   results.classList.remove("visible");
@@ -321,12 +329,11 @@ function resetToDefaults(confirmUser = true){
 load();
 
 /* Service Worker */
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
+if("serviceWorker"in navigator){
+  window.addEventListener("load",()=>{
     navigator.serviceWorker.register("sw.js");
   });
 }
 </script>
-
 </body>
 </html>
