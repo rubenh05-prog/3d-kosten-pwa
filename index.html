@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="3D-Druck">
 <link rel="apple-touch-icon" href="icon-192.png">
 
-<!-- Android / allgemein -->
+<!-- Manifest -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ffcc00">
 <meta name="color-scheme" content="light dark">
@@ -35,7 +35,9 @@
     --border:#333333;
   }
 }
+
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+
 body{
   margin:0;
   font-family:Arial,sans-serif;
@@ -45,14 +47,22 @@ body{
   justify-content:center;
   padding:16px;
 }
-.container{width:100%;max-width:360px;}
+
+.container{
+  width:100%;
+  max-width:360px;
+}
+
 .card{
   background:var(--card);
   border-radius:14px;
   padding:16px;
   margin-bottom:14px;
 }
-.card.top{border-top:6px solid var(--accent);}
+.card.top{
+  border-top:6px solid var(--accent);
+}
+
 ul{list-style:none;padding:0;margin:0;}
 li{
   display:flex;
@@ -61,7 +71,11 @@ li{
   margin-bottom:12px;
   gap:10px;
 }
-label{font-weight:600;font-size:16px;min-width:140px;}
+label{
+  font-weight:600;
+  font-size:16px;
+  min-width:140px;
+}
 input{
   width:120px;
   padding:10px;
@@ -89,7 +103,6 @@ input{
 .results-list div{
   text-align:center;
   margin-bottom:6px;
-  font-size:16px;
 }
 .results-total{
   margin-top:12px;
@@ -99,10 +112,12 @@ input{
   color:var(--accent);
 }
 
+/* Footer */
 .footer{
   text-align:center;
   font-size:13px;
   opacity:.7;
+  margin-top:-6px;
 }
 
 button{
@@ -122,6 +137,7 @@ button:active{transform:scale(.98);}
 <body>
 <div class="container">
 
+<!-- Eingaben -->
 <div class="card top">
 <ul>
 <li><label>Filament €/kg</label><input id="plaPreis" type="number"></li>
@@ -156,6 +172,7 @@ button:active{transform:scale(.98);}
   </div>
 </div>
 
+<!-- Letzte Änderung – IM FLOW -->
 <div class="footer" id="lastChange"></div>
 
 </div>
@@ -179,7 +196,7 @@ const lastChange=document.getElementById("lastChange");
 inputs.forEach(i=>i.addEventListener("input",()=>{save();calc();}));
 
 function get(id){
-  return parseFloat(document.getElementById(id).value) || 0;
+  return parseFloat(document.getElementById(id).value)||0;
 }
 
 function calc(){
@@ -217,14 +234,25 @@ function save(){
   inputs.forEach(i=>d[i.id]=i.value);
   d.time=new Date().toISOString();
   localStorage.setItem(KEY,JSON.stringify(d));
-  lastChange.textContent="🕘 Letzte Änderung: "+new Date(d.time).toLocaleString("de-DE");
+
+  const t=new Date(d.time);
+  lastChange.textContent=
+    "🕘 Letzte Änderung: "+
+    t.toLocaleDateString("de-DE")+" "+
+    t.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
 }
 
 function load(){
   const d=JSON.parse(localStorage.getItem(KEY));
   if(!d){resetToDefaults(false);return;}
   inputs.forEach(i=>i.value=d[i.id]||"");
-  if(d.time)lastChange.textContent="🕘 Letzte Änderung: "+new Date(d.time).toLocaleString("de-DE");
+  if(d.time){
+    const t=new Date(d.time);
+    lastChange.textContent=
+      "🕘 Letzte Änderung: "+
+      t.toLocaleDateString("de-DE")+" "+
+      t.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+  }
   calc();
 }
 
@@ -239,7 +267,7 @@ load();
 
 /* Service Worker */
 if("serviceWorker"in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js"));
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"));
 }
 </script>
 </body>
