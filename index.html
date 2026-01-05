@@ -20,7 +20,6 @@
 <meta name="color-scheme" content="light dark">
 
 <style>
-/* === unverändert aus deiner letzten Version === */
 :root{
   --bg:#f4f4f4;
   --card:#ffffff;
@@ -75,13 +74,23 @@ input{
 }
 .time-inputs{display:flex;gap:6px;}
 .time-inputs input{width:56px;text-align:center;}
+
+/* Ergebnisse */
 .results{
   opacity:0;
   max-height:0;
   overflow:hidden;
   transition:.2s ease;
 }
-.results.visible{opacity:1;max-height:300px;}
+.results.visible{
+  opacity:1;
+  max-height:400px;
+}
+.results-list div{
+  text-align:center;
+  margin-bottom:6px;
+  font-size:16px;
+}
 .results-total{
   margin-top:12px;
   text-align:center;
@@ -89,7 +98,13 @@ input{
   font-weight:bold;
   color:var(--accent);
 }
-.footer{text-align:center;font-size:13px;opacity:.7;}
+
+.footer{
+  text-align:center;
+  font-size:13px;
+  opacity:.7;
+}
+
 button{
   margin-top:10px;
   width:100%;
@@ -113,6 +128,7 @@ button:active{transform:scale(.98);}
 <li><label>Leistung (W)</label><input id="leistung" type="number"></li>
 <li><label>Strom €/kWh</label><input id="strompreis" type="number"></li>
 <li><label>Verschleiß €/h</label><input id="verschleiss" type="number"></li>
+
 <li>
   <label>Druckzeit</label>
   <div class="time-inputs">
@@ -120,16 +136,24 @@ button:active{transform:scale(.98);}
     <input id="druckzeitMinuten" type="number" placeholder="min">
   </div>
 </li>
+
 <li><label>Material (g)</label><input id="material" type="number"></li>
 </ul>
 
 <button onclick="resetToDefaults()">🔄 Standardwerte wiederherstellen</button>
 </div>
 
+<!-- Kostenübersicht -->
 <div class="card results" id="results">
-<div class="results-total">
-Gesamt: <span id="gesamt">0.00</span> €
-</div>
+  <div class="results-list">
+    <div>Material: <span id="mk">0.00</span> €</div>
+    <div>Strom: <span id="sk">0.00</span> €</div>
+    <div>Verschleiß: <span id="vk">0.00</span> €</div>
+  </div>
+
+  <div class="results-total">
+    Gesamt: <span id="gesamt">0.00</span> €
+  </div>
 </div>
 
 <div class="footer" id="lastChange"></div>
@@ -137,7 +161,6 @@ Gesamt: <span id="gesamt">0.00</span> €
 </div>
 
 <script>
-/* === LocalStorage + Logik (unverändert) === */
 const KEY="druckkosten_state";
 const DEFAULTS={
   plaPreis:22.5,
@@ -148,29 +171,50 @@ const DEFAULTS={
   druckzeitMinuten:"",
   material:""
 };
+
 const inputs=document.querySelectorAll("input");
 const results=document.getElementById("results");
 const lastChange=document.getElementById("lastChange");
 
 inputs.forEach(i=>i.addEventListener("input",()=>{save();calc();}));
 
-function get(id){return parseFloat(document.getElementById(id).value)||0;}
+function get(id){
+  return parseFloat(document.getElementById(id).value) || 0;
+}
 
 function calc(){
   const h=get("druckzeitStunden");
   const m=get("druckzeitMinuten");
   const min=h*60+m;
-  if(!min||!get("material")){results.classList.remove("visible");return;}
-  const ges=
-    (get("material")/1000)*get("plaPreis")+
-    (get("leistung")/1000)*(min/60)*get("strompreis")+
-    (min/60)*get("verschleiss");
+
+  const pla=get("plaPreis");
+  const watt=get("leistung");
+  const strom=get("strompreis");
+  const versch=get("verschleiss");
+  const mat=get("material");
+
+  if(!pla||!watt||!strom||!versch||!mat||min<=0){
+    results.classList.remove("visible");
+    return;
+  }
+
+  const hrs=min/60;
+  const mkv=(mat/1000)*pla;
+  const skv=(watt/1000)*hrs*strom;
+  const vkv=hrs*versch;
+  const ges=mkv+skv+vkv;
+
+  mk.textContent=mkv.toFixed(2);
+  sk.textContent=skv.toFixed(2);
+  vk.textContent=vkv.toFixed(2);
   gesamt.textContent=ges.toFixed(2);
+
   results.classList.add("visible");
 }
 
 function save(){
-  const d={};inputs.forEach(i=>d[i.id]=i.value);
+  const d={};
+  inputs.forEach(i=>d[i.id]=i.value);
   d.time=new Date().toISOString();
   localStorage.setItem(KEY,JSON.stringify(d));
   lastChange.textContent="🕘 Letzte Änderung: "+new Date(d.time).toLocaleString("de-DE");
@@ -193,9 +237,9 @@ function resetToDefaults(confirmUser=true){
 
 load();
 
-/* === Service Worker === */
+/* Service Worker */
 if("serviceWorker"in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js"));
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"));
 }
 </script>
 </body>
