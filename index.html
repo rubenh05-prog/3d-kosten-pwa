@@ -36,7 +36,10 @@
   }
 }
 
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
 
 body{
   margin:0;
@@ -53,16 +56,27 @@ body{
   max-width:360px;
 }
 
+/* Karten */
 .card{
   background:var(--card);
   border-radius:14px;
   padding:16px;
-  margin-bottom:14px;
-}
-.card.top{
-  border-top:6px solid var(--accent);
 }
 
+.card.top{
+  border-top:6px solid var(--accent);
+  margin-bottom:6px;
+}
+
+.card.results{
+  margin-bottom:6px;
+}
+
+.card.results:not(.visible){
+  margin-bottom:0;
+}
+
+/* Eingaben */
 ul{list-style:none;padding:0;margin:0;}
 li{
   display:flex;
@@ -71,11 +85,13 @@ li{
   margin-bottom:12px;
   gap:10px;
 }
+
 label{
   font-weight:600;
   font-size:16px;
   min-width:140px;
 }
+
 input{
   width:120px;
   padding:10px;
@@ -86,8 +102,15 @@ input{
   color:var(--text);
   text-align:right;
 }
-.time-inputs{display:flex;gap:6px;}
-.time-inputs input{width:56px;text-align:center;}
+
+.time-inputs{
+  display:flex;
+  gap:6px;
+}
+.time-inputs input{
+  width:56px;
+  text-align:center;
+}
 
 /* Ergebnisse */
 .results{
@@ -96,14 +119,17 @@ input{
   overflow:hidden;
   transition:.2s ease;
 }
+
 .results.visible{
   opacity:1;
   max-height:400px;
 }
+
 .results-list div{
   text-align:center;
   margin-bottom:6px;
 }
+
 .results-total{
   margin-top:12px;
   text-align:center;
@@ -117,9 +143,10 @@ input{
   text-align:center;
   font-size:13px;
   opacity:.7;
-  margin-top:-6px;
+  margin-top:4px;
 }
 
+/* Button */
 button{
   margin-top:10px;
   width:100%;
@@ -130,7 +157,9 @@ button{
   background:transparent;
   color:var(--text);
 }
-button:active{transform:scale(.98);}
+button:active{
+  transform:scale(.98);
+}
 </style>
 </head>
 
@@ -172,13 +201,14 @@ button:active{transform:scale(.98);}
   </div>
 </div>
 
-<!-- Letzte Änderung – IM FLOW -->
+<!-- Letzte Änderung -->
 <div class="footer" id="lastChange"></div>
 
 </div>
 
 <script>
 const KEY="druckkosten_state";
+
 const DEFAULTS={
   plaPreis:22.5,
   leistung:130,
@@ -258,7 +288,9 @@ function load(){
 
 function resetToDefaults(confirmUser=true){
   if(confirmUser&&!confirm("Standardwerte wiederherstellen?"))return;
-  Object.keys(DEFAULTS).forEach(id=>document.getElementById(id).value=DEFAULTS[id]);
+  Object.keys(DEFAULTS).forEach(id=>{
+    document.getElementById(id).value=DEFAULTS[id];
+  });
   save();
   results.classList.remove("visible");
 }
@@ -266,8 +298,10 @@ function resetToDefaults(confirmUser=true){
 load();
 
 /* Service Worker */
-if("serviceWorker"in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js"));
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("service-worker.js");
+  });
 }
 </script>
 </body>
