@@ -96,7 +96,7 @@ input{
 }
 .results.visible{
   opacity:1;
-  max-height:900px;
+  max-height:1000px;
 }
 
 .results-list div{
@@ -110,6 +110,13 @@ input{
   font-size:1.7em;
   font-weight:bold;
   color:var(--accent);
+}
+
+.results-hour{
+  margin-top:6px;
+  text-align:center;
+  font-size:0.95em;
+  opacity:.75;
 }
 
 .footer{
@@ -160,6 +167,7 @@ button:active{transform:scale(.98);}
 <button onclick="toggleInfo()">ℹ️ Wie wird gerechnet?</button>
 </div>
 
+<!-- Info Box -->
 <div class="card results" id="infoBox">
   <div class="results-list" style="font-size:14px;text-align:left">
     <strong>Wie wird gerechnet?</strong><br><br>
@@ -172,7 +180,8 @@ button:active{transform:scale(.98);}
     Der Puffer wird ausschliesslich auf die Materialkosten angewendet.<br><br>
 
     <strong>Stromkosten</strong><br>
-    (Leistung in Watt / 1000) × Druckzeit in Stunden × Strompreis (Euro pro kWh)<br><br>
+    (Leistung in Watt / 1000) × Druckzeit in Stunden × Strompreis (Euro pro kWh)<br>
+    <em>Die angegebene Leistung ist der durchschnittliche Wert über die gesamte Druckzeit (inklusive Aufheizen).</em><br><br>
 
     <strong>Verschleisskosten</strong><br>
     Druckzeit in Stunden × Verschleisskosten (Euro pro Stunde)<br><br>
@@ -188,6 +197,7 @@ button:active{transform:scale(.98);}
   </div>
 </div>
 
+<!-- Ergebnisse -->
 <div class="card results" id="results">
   <div class="results-list">
     <div>Material: <span id="mk">0.00</span> Euro</div>
@@ -199,6 +209,10 @@ button:active{transform:scale(.98);}
 
   <div class="results-total">
     Gesamt: <span id="gesamt">0.00</span> Euro
+  </div>
+
+  <div class="results-hour">
+    ≈ <span id="proStunde">0.00</span> Euro / h (Durchschnitt)
   </div>
 </div>
 
@@ -267,19 +281,20 @@ function calc(){
   const verschKosten=hrs*versch;
   const wartKosten=hrs*wart;
 
+  const gesamtKosten=
+    materialKosten+
+    fehlerKosten+
+    stromKosten+
+    verschKosten+
+    wartKosten;
+
   mk.textContent=materialKosten.toFixed(2);
   fk.textContent=fehlerKosten.toFixed(2);
   sk.textContent=stromKosten.toFixed(2);
   vk.textContent=verschKosten.toFixed(2);
   wk.textContent=wartKosten.toFixed(2);
-
-  gesamt.textContent=(
-    materialKosten+
-    fehlerKosten+
-    stromKosten+
-    verschKosten+
-    wartKosten
-  ).toFixed(2);
+  gesamt.textContent=gesamtKosten.toFixed(2);
+  proStunde.textContent=(gesamtKosten/hrs).toFixed(2);
 
   results.classList.add("visible");
 }
