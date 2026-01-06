@@ -136,11 +136,10 @@ button:active{transform:scale(.98);}
 <body>
 <div class="container">
 
-<!-- Eingaben -->
 <div class="card top">
 <ul>
 <li><label>Filament Euro/kg</label><div class="input-wrap"><input id="plaPreis" type="number"></div></li>
-<li><label>Leistung (W)</label><div class="input-wrap"><input id="leistung" type="number"></div></li>
+<li><label>Leistung (W) Durchschnitt</label><div class="input-wrap"><input id="leistung" type="number"></div></li>
 <li><label>Strom Euro/kWh</label><div class="input-wrap"><input id="strompreis" type="number"></div></li>
 <li><label>Verschleiss Euro/h</label><div class="input-wrap"><input id="verschleiss" type="number"></div></li>
 <li><label>Fehldruck-Puffer Prozent</label><div class="input-wrap"><input id="fehlerProzent" type="number"></div></li>
@@ -161,7 +160,6 @@ button:active{transform:scale(.98);}
 <button onclick="toggleInfo()">ℹ️ Wie wird gerechnet?</button>
 </div>
 
-<!-- Info Box -->
 <div class="card results" id="infoBox">
   <div class="results-list" style="font-size:14px;text-align:left">
     <strong>Wie wird gerechnet?</strong><br><br>
@@ -190,7 +188,6 @@ button:active{transform:scale(.98);}
   </div>
 </div>
 
-<!-- Ergebnisse -->
 <div class="card results" id="results">
   <div class="results-list">
     <div>Material: <span id="mk">0.00</span> Euro</div>
