@@ -136,14 +136,12 @@ button:active{transform:scale(.98);}
 <body>
 <div class="container">
 
-<!-- Eingaben -->
 <div class="card top">
 <ul>
 <li><label>Filament Euro/kg</label><div class="input-wrap"><input id="plaPreis" type="number"></div></li>
 <li><label>Leistung (W)</label><div class="input-wrap"><input id="leistung" type="number"></div></li>
 <li><label>Strom Euro/kWh</label><div class="input-wrap"><input id="strompreis" type="number"></div></li>
 <li><label>Verschleiss Euro/h</label><div class="input-wrap"><input id="verschleiss" type="number"></div></li>
-
 <li><label>Fehldruck-Puffer Prozent</label><div class="input-wrap"><input id="fehlerProzent" type="number"></div></li>
 <li><label>Wartung und Pflege Euro/h</label><div class="input-wrap"><input id="wartung" type="number"></div></li>
 
@@ -162,35 +160,18 @@ button:active{transform:scale(.98);}
 <button onclick="toggleInfo()">ℹ️ Wie wird gerechnet?</button>
 </div>
 
-<!-- Info Box -->
 <div class="card results" id="infoBox">
   <div class="results-list" style="font-size:14px;text-align:left">
     <strong>Wie wird gerechnet?</strong><br><br>
-
-    <strong>Materialkosten</strong><br>
-    (Material in g / 1000) × Filamentpreis (Euro pro kg)<br><br>
-
-    <strong>Fehldruck-Puffer</strong><br>
-    Materialkosten × (Fehldruck-Puffer in Prozent / 100)<br><br>
-
-    <strong>Stromkosten</strong><br>
-    (Leistung in Watt / 1000) × Druckzeit in Stunden × Strompreis (Euro pro kWh)<br><br>
-
-    <strong>Verschleisskosten</strong><br>
-    Druckzeit in Stunden × Verschleisskosten (Euro pro Stunde)<br><br>
-
-    <strong>Wartung und Pflege</strong><br>
-    Druckzeit in Stunden × Wartungskosten (Euro pro Stunde)<br><br>
-
-    <strong>Gesamtkosten</strong><br>
-    Summe aller oben genannten Kostenpunkte<br><br>
-
-    <em>Dieser Rechner dient ausschliesslich zur Kostendeckung.<br>
-    Es wird kein Gewinn berechnet.</em>
+    Material (g) / 1000 × Filamentpreis (Euro/kg)<br>
+    + Fehldruck-Puffer (%) nur auf Material<br>
+    + Stromkosten (W → kWh)<br>
+    + Verschleisskosten (Euro/h)<br>
+    + Wartung und Pflege (Euro/h)<br><br>
+    <em>Keine Gewinnerzielung – reine Kostendeckung.</em>
   </div>
 </div>
 
-<!-- Ergebnisse -->
 <div class="card results" id="results">
   <div class="results-list">
     <div>Material: <span id="mk">0.00</span> Euro</div>
@@ -300,15 +281,33 @@ function save(){
 }
 
 function load(){
-  const d=JSON.parse(localStorage.getItem(KEY));
-  if(!d){resetToDefaults(false);return;}
-  inputs.forEach(i=>i.value=d[i.id]||"");
+  let d=JSON.parse(localStorage.getItem(KEY))||{};
+  let changed=false;
+
+  inputs.forEach(i=>{
+    if(d[i.id]!==undefined){
+      i.value=d[i.id];
+    }else if(DEFAULTS[i.id]!==undefined){
+      i.value=DEFAULTS[i.id];
+      d[i.id]=DEFAULTS[i.id];
+      changed=true;
+    }else{
+      i.value="";
+    }
+  });
+
+  if(changed){
+    d.time=new Date().toISOString();
+    localStorage.setItem(KEY,JSON.stringify(d));
+  }
+
   if(d.time){
     const t=new Date(d.time);
     lastChange.textContent="Letzte Aenderung: "+
       t.toLocaleDateString("de-DE")+" "+
       t.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
   }
+
   calc();
 }
 
