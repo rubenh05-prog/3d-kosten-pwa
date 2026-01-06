@@ -96,7 +96,7 @@ input{
 }
 .results.visible{
   opacity:1;
-  max-height:800px;
+  max-height:900px;
 }
 
 .results-list div{
@@ -136,6 +136,7 @@ button:active{transform:scale(.98);}
 <body>
 <div class="container">
 
+<!-- Eingaben -->
 <div class="card top">
 <ul>
 <li><label>Filament Euro/kg</label><div class="input-wrap"><input id="plaPreis" type="number"></div></li>
@@ -160,18 +161,36 @@ button:active{transform:scale(.98);}
 <button onclick="toggleInfo()">ℹ️ Wie wird gerechnet?</button>
 </div>
 
+<!-- Info Box -->
 <div class="card results" id="infoBox">
   <div class="results-list" style="font-size:14px;text-align:left">
     <strong>Wie wird gerechnet?</strong><br><br>
-    Material (g) / 1000 × Filamentpreis (Euro/kg)<br>
-    + Fehldruck-Puffer (%) nur auf Material<br>
-    + Stromkosten (W → Euro/kWh)<br>
-    + Verschleisskosten (Euro/h)<br>
-    + Wartung und Pflege (Euro/h)<br><br>
-    <em>Keine Gewinnerzielung – reine Kostendeckung.</em>
+
+    <strong>Materialkosten</strong><br>
+    (Material in g / 1000) × Filamentpreis (Euro pro kg)<br><br>
+
+    <strong>Fehldruck-Puffer</strong><br>
+    Materialkosten × (Fehldruck-Puffer in Prozent / 100)<br>
+    Der Puffer wird ausschliesslich auf die Materialkosten angewendet.<br><br>
+
+    <strong>Stromkosten</strong><br>
+    (Leistung in Watt / 1000) × Druckzeit in Stunden × Strompreis (Euro pro kWh)<br><br>
+
+    <strong>Verschleisskosten</strong><br>
+    Druckzeit in Stunden × Verschleisskosten (Euro pro Stunde)<br><br>
+
+    <strong>Wartung und Pflege</strong><br>
+    Druckzeit in Stunden × Wartungskosten (Euro pro Stunde)<br><br>
+
+    <strong>Gesamtkosten</strong><br>
+    Summe aus Material, Fehldruck-Puffer, Strom, Verschleiss sowie Wartung und Pflege.<br><br>
+
+    <em>Dieser Rechner dient ausschliesslich zur Kostendeckung.<br>
+    Es wird kein Gewinn berechnet.</em>
   </div>
 </div>
 
+<!-- Ergebnisse -->
 <div class="card results" id="results">
   <div class="results-list">
     <div>Material: <span id="mk">0.00</span> Euro</div>
