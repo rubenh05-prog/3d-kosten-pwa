@@ -96,7 +96,7 @@ input{
 }
 .results.visible{
   opacity:1;
-  max-height:600px;
+  max-height:800px;
 }
 
 .results-list div{
@@ -120,7 +120,7 @@ input{
 }
 
 button{
-  margin-top:10px;
+  margin-top:8px;
   width:100%;
   padding:10px;
   font-size:15px;
@@ -136,15 +136,16 @@ button:active{transform:scale(.98);}
 <body>
 <div class="container">
 
+<!-- Eingaben -->
 <div class="card top">
 <ul>
-<li><label>Filament €/kg</label><div class="input-wrap"><input id="plaPreis" type="number"></div></li>
+<li><label>Filament Euro/kg</label><div class="input-wrap"><input id="plaPreis" type="number"></div></li>
 <li><label>Leistung (W)</label><div class="input-wrap"><input id="leistung" type="number"></div></li>
-<li><label>Strom €/kWh</label><div class="input-wrap"><input id="strompreis" type="number"></div></li>
-<li><label>Verschleiß €/h</label><div class="input-wrap"><input id="verschleiss" type="number"></div></li>
+<li><label>Strom Euro/kWh</label><div class="input-wrap"><input id="strompreis" type="number"></div></li>
+<li><label>Verschleiss Euro/h</label><div class="input-wrap"><input id="verschleiss" type="number"></div></li>
 
-<li><label>Fehldruck-Puffer (%)</label><div class="input-wrap"><input id="fehlerProzent" type="number"></div></li>
-<li><label>Wartung & Pflege €/h</label><div class="input-wrap"><input id="wartung" type="number"></div></li>
+<li><label>Fehldruck-Puffer Prozent</label><div class="input-wrap"><input id="fehlerProzent" type="number"></div></li>
+<li><label>Wartung und Pflege Euro/h</label><div class="input-wrap"><input id="wartung" type="number"></div></li>
 
 <li>
   <label>Druckzeit</label>
@@ -158,19 +159,49 @@ button:active{transform:scale(.98);}
 </ul>
 
 <button onclick="resetToDefaults()">🔄 Standardwerte wiederherstellen</button>
+<button onclick="toggleInfo()">ℹ️ Wie wird gerechnet?</button>
 </div>
 
+<!-- Info Box -->
+<div class="card results" id="infoBox">
+  <div class="results-list" style="font-size:14px;text-align:left">
+    <strong>Wie wird gerechnet?</strong><br><br>
+
+    <strong>Materialkosten</strong><br>
+    (Material in g / 1000) × Filamentpreis (Euro pro kg)<br><br>
+
+    <strong>Fehldruck-Puffer</strong><br>
+    Materialkosten × (Fehldruck-Puffer in Prozent / 100)<br><br>
+
+    <strong>Stromkosten</strong><br>
+    (Leistung in Watt / 1000) × Druckzeit in Stunden × Strompreis (Euro pro kWh)<br><br>
+
+    <strong>Verschleisskosten</strong><br>
+    Druckzeit in Stunden × Verschleisskosten (Euro pro Stunde)<br><br>
+
+    <strong>Wartung und Pflege</strong><br>
+    Druckzeit in Stunden × Wartungskosten (Euro pro Stunde)<br><br>
+
+    <strong>Gesamtkosten</strong><br>
+    Summe aller oben genannten Kostenpunkte<br><br>
+
+    <em>Dieser Rechner dient ausschliesslich zur Kostendeckung.<br>
+    Es wird kein Gewinn berechnet.</em>
+  </div>
+</div>
+
+<!-- Ergebnisse -->
 <div class="card results" id="results">
   <div class="results-list">
-    <div>Material: <span id="mk">0.00</span> €</div>
-    <div>Fehldruck-Puffer: <span id="fk">0.00</span> €</div>
-    <div>Strom: <span id="sk">0.00</span> €</div>
-    <div>Verschleiß: <span id="vk">0.00</span> €</div>
-    <div>Wartung & Pflege: <span id="wk">0.00</span> €</div>
+    <div>Material: <span id="mk">0.00</span> Euro</div>
+    <div>Fehldruck-Puffer: <span id="fk">0.00</span> Euro</div>
+    <div>Strom: <span id="sk">0.00</span> Euro</div>
+    <div>Verschleiss: <span id="vk">0.00</span> Euro</div>
+    <div>Wartung und Pflege: <span id="wk">0.00</span> Euro</div>
   </div>
 
   <div class="results-total">
-    Gesamt: <span id="gesamt">0.00</span> €
+    Gesamt: <span id="gesamt">0.00</span> Euro
   </div>
 </div>
 
@@ -194,11 +225,16 @@ const DEFAULTS={
 
 const inputs=document.querySelectorAll("input");
 const results=document.getElementById("results");
+const infoBox=document.getElementById("infoBox");
 const lastChange=document.getElementById("lastChange");
 
 inputs.forEach(i=>i.addEventListener("input",()=>{save();calc();}));
 
 function get(id){return parseFloat(document.getElementById(id).value)||0;}
+
+function toggleInfo(){
+  infoBox.classList.toggle("visible");
+}
 
 function calc(){
   let h=get("druckzeitStunden");
@@ -258,7 +294,7 @@ function save(){
   localStorage.setItem(KEY,JSON.stringify(d));
 
   const t=new Date(d.time);
-  lastChange.textContent="🕘 Letzte Änderung: "+
+  lastChange.textContent="Letzte Aenderung: "+
     t.toLocaleDateString("de-DE")+" "+
     t.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
 }
@@ -269,7 +305,7 @@ function load(){
   inputs.forEach(i=>i.value=d[i.id]||"");
   if(d.time){
     const t=new Date(d.time);
-    lastChange.textContent="🕘 Letzte Änderung: "+
+    lastChange.textContent="Letzte Aenderung: "+
       t.toLocaleDateString("de-DE")+" "+
       t.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
   }
