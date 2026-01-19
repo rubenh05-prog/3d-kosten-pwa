@@ -146,17 +146,17 @@ button:active{transform:scale(.98);}
 <div class="card top">
 <ul>
 <li><label>Filament Euro/kg</label><div class="input-wrap"><input id="plaPreis" type="number" min="0"></div></li>
-<li><label>Leistung (W) Durchschnitt</label><div class="input-wrap"><input id="leistung" type="number"></div></li>
-<li><label>Strom Euro/kWh</label><div class="input-wrap"><input id="strompreis" type="number"></div></li>
-<li><label>Verschleiss Euro/h</label><div class="input-wrap"><input id="verschleiss" type="number"></div></li>
-<li><label>Fehldruck-Puffer Prozent</label><div class="input-wrap"><input id="fehlerProzent" type="number"></div></li>
-<li><label>Wartung und Pflege Euro/h</label><div class="input-wrap"><input id="wartung" type="number"></div></li>
+<li><label>Leistung (W) Durchschnitt</label><div class="input-wrap"><input id="leistung" type="number" min="0"></div></li>
+<li><label>Strom Euro/kWh</label><div class="input-wrap"><input id="strompreis" type="number" min="0"></div></li>
+<li><label>Verschleiss Euro/h</label><div class="input-wrap"><input id="verschleiss" type="number" min="0"></div></li>
+<li><label>Fehldruck-Puffer Prozent</label><div class="input-wrap"><input id="fehlerProzent" type="number" min="0"></div></li>
+<li><label>Wartung und Pflege Euro/h</label><div class="input-wrap"><input id="wartung" type="number" min="0"></div></li>
 
 <li>
   <label>Druckzeit</label>
-  <div class="input-wrap time-inputs">
-    <input id="druckzeitStunden" type="number" placeholder="h">
-    <input id="druckzeitMinuten" type="number" placeholder="min">
+  <div class="input-wrap time-inputs" min="0">
+    <input id="druckzeitStunden" type="number" placeholder="h" min="0">
+    <input id="druckzeitMinuten" type="number" placeholder="min" min="0">
   </div>
 </li>
 
