@@ -233,7 +233,12 @@ const DEFAULTS={
   druckzeitMinuten:"",
   material:""
 };
-
+function stepFromValue(val){
+  if (typeof val !== "number") return 1;
+  const s = String(val);
+  if (!s.includes(".")) return 1;
+  return Math.pow(10, -s.split(".")[1].length);
+}
 const inputs=document.querySelectorAll("input");
 const results=document.getElementById("results");
 const infoBox=document.getElementById("infoBox");
@@ -310,10 +315,11 @@ function save(){
     t.toLocaleDateString("de-DE")+" "+
     t.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
 }
-
 function load(){
-  let d=JSON.parse(localStorage.getItem(KEY))||{};
-  let changed=false;
+
+  inputs.forEach(i=>{
+    if (DEFAULTS[i.id] !== undefined){
+      i.step = stepFromValue(DEFAULTS[i.id]);
 
   inputs.forEach(i=>{
     if(d[i.id]!==undefined){
