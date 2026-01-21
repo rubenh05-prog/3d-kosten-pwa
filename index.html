@@ -176,8 +176,12 @@ button:active{transform:scale(.98);}
     (Material in g / 1000) × Filamentpreis (Euro pro kg)<br><br>
 
     <strong>Fehldruck-Puffer</strong><br>
-    Materialkosten × (Fehldruck-Puffer in Prozent / 100)<br>
-    Der Puffer wird ausschliesslich auf die Materialkosten angewendet.<br><br>
+      (Materialkosten + Verschleißkosten)<br>
+      × (Fehldruck-Puffer in Prozent / 100)<br><br>
+
+      Der Fehldruck-Puffer berücksichtigt neben dem verbrauchten Material
+      auch den zusätzlichen Verschleiß durch fehlgeschlagene Drucke.<br><br>
+
 
     <strong>Stromkosten</strong><br>
     (Leistung in Watt / 1000) × Druckzeit in Stunden × Strompreis (Euro pro kWh)<br>
@@ -287,7 +291,12 @@ function calc(){
 
   const hrs=min/60;
   const materialKosten=(mat/1000)*pla;
-  const fehlerKosten=materialKosten*(fehlerP/100);
+  const fehlerBasis =
+  materialKosten +
+  verschKosten;
+
+const fehlerKosten = fehlerBasis * (fehlerP / 100);
+
   const stromKosten=(watt/1000)*hrs*strom;
   const verschKosten=hrs*versch;
   const wartKosten=hrs*wart;
