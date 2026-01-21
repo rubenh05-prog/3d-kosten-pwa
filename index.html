@@ -290,16 +290,16 @@ function calc(){
   }
 
   const hrs=min/60;
-  const materialKosten=(mat/1000)*pla;
-  const fehlerBasis =
+  const materialKosten = (mat / 1000) * pla;
+const stromKosten    = (watt / 1000) * hrs * strom;
+const verschKosten   = hrs * versch;
+const wartKosten     = hrs * wart;
+
+const fehlerBasis =
   materialKosten +
   verschKosten;
 
 const fehlerKosten = fehlerBasis * (fehlerP / 100);
-
-  const stromKosten=(watt/1000)*hrs*strom;
-  const verschKosten=hrs*versch;
-  const wartKosten=hrs*wart;
 
   const gesamtKosten=
     materialKosten+
