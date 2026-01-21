@@ -379,15 +379,13 @@ if("serviceWorker"in navigator){
 }
 function copyMessage(){
   const text =
-`Deine Kosten sind:
-Deine Gesamtkosten betragen: ${gesamt.textContent} Euro
+`Deine Gesamtkosten für 3D-Druck betragen: ${gesamt.textContent} Euro
 Diese ergeben sich aus:
 Material: ${mk.textContent} Euro,
 Fehldruck-Puffer: ${fk.textContent} Euro,
 Strom: ${sk.textContent} Euro,
 Verschleiß: ${vk.textContent} Euro,
-Wartung und Pflege: ${wk.textContent} Euro,
-≈ ${proStunde.textContent} Euro / h (Durchschnitt)`;
+Wartung und Pflege: ${wk.textContent} Euro`;
 
   navigator.clipboard.writeText(text).then(()=>{
     alert("Nachricht wurde kopiert ✅");
