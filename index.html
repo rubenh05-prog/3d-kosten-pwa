@@ -214,6 +214,7 @@ button:active{transform:scale(.98);}
   <div class="results-hour">
     ≈ <span id="proStunde">0.00</span> Euro / h (Durchschnitt)
   </div>
+      <button onclick="copyMessage()">📋 Nachricht kopieren</button>
 </div>
 
 <div class="footer" id="lastChange"></div>
@@ -374,6 +375,22 @@ load();
 if("serviceWorker"in navigator){
   window.addEventListener("load",()=>{
     navigator.serviceWorker.register("service-worker.js");
+  });
+}
+function copyMessage(){
+  const text =
+`Deine Kosten sind:
+Deine Gesamtkosten betragen: ${gesamt.textContent} Euro
+Diese ergeben sich aus:
+Material: ${mk.textContent} Euro,
+Fehldruck-Puffer: ${fk.textContent} Euro,
+Strom: ${sk.textContent} Euro,
+Verschleiß: ${vk.textContent} Euro,
+Wartung und Pflege: ${wk.textContent} Euro,
+≈ ${proStunde.textContent} Euro / h (Durchschnitt)`;
+
+  navigator.clipboard.writeText(text).then(()=>{
+    alert("Nachricht wurde kopiert ✅");
   });
 }
 </script>
