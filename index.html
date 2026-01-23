@@ -389,17 +389,14 @@ if("serviceWorker"in navigator){
   });
 }
 function copyMessage(){
-      const text =
-`Deine Gesamtkosten für 3D-Druck 
- 
-betragen: ${gesamt.textContent} Euro
+  const text =
+`🖨️ *3D-Druck Kosten*
 
-Diese ergeben sich aus:
-Material: ${mk.textContent} Euro,
-Fehldruck-Puffer: ${fk.textContent} Euro,
-Strom: ${sk.textContent} Euro,
-Verschleiß: ${vk.textContent} Euro,
-Wartung und Pflege: ${wk.textContent} Euro`;
+————————————
+💰 *Gesamt: ${gesamt.textContent} €*
+————————————
+ℹ️ Details zur Kostenberechnung:
+https://rubenh05-prog.github.io/3d-kosten-pwa/`;
 
   navigator.clipboard.writeText(text).then(()=>{
     alert("Nachricht wurde kopiert ✅");
