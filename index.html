@@ -2,15 +2,15 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>3D-Druck Kosten Rechner</title>
 
 <style>
 :root{
   --bg:#f4f4f4;
   --card:#ffffff;
-  --text:#000000;
-  --border:#cccccc;
+  --text:#000;
+  --border:#ccc;
   --accent:#ffcc00;
 }
 @media (prefers-color-scheme: dark){
@@ -18,12 +18,10 @@
     --bg:#121212;
     --card:#1e1e1e;
     --text:#f1f1f1;
-    --border:#333333;
+    --border:#333;
   }
 }
-
 *{box-sizing:border-box;}
-
 body{
   margin:0;
   font-family:Arial,sans-serif;
@@ -33,78 +31,44 @@ body{
   justify-content:center;
   padding:16px;
 }
-
-.container{width:100%;max-width:380px;}
-
+.container{max-width:380px;width:100%;}
 .card{
   background:var(--card);
   border-radius:14px;
   padding:16px;
-  margin-bottom:6px;
+  margin-bottom:8px;
 }
-
 ul{list-style:none;padding:0;margin:0;}
-
-li{
-  display:flex;
-  align-items:center;
-  margin-bottom:12px;
-  gap:18px;
-}
-
+li{display:flex;gap:16px;margin-bottom:12px;align-items:center;}
 label{flex:1;font-weight:600;}
-
-.input-wrap{
-  flex:0 0 150px;
-  display:flex;
-  justify-content:center;
-}
-
+.input-wrap{flex:0 0 140px;}
 input{
-  width:130px;
-  padding:10px;
-  font-size:16px;
+  width:100%;
+  padding:8px;
   border-radius:8px;
   border:1px solid var(--border);
   background:var(--card);
   color:var(--text);
   text-align:center;
 }
-
 .time-inputs{display:flex;gap:8px;}
-.time-inputs input{width:62px;}
+.time-inputs input{width:64px;}
 
-.results{
-  display:none;
-}
-
-.results.visible{
-  display:block;
-}
-
-.results-list div{
-  text-align:center;
-  margin-bottom:6px;
-}
-
+.results{display:none;}
+.results.visible{display:block;}
+.results-list div{text-align:center;margin-bottom:6px;}
 .results-total{
-  margin-top:12px;
+  margin-top:10px;
   text-align:center;
-  font-size:1.7em;
+  font-size:1.6em;
   font-weight:bold;
   color:var(--accent);
 }
-
-.results-hour{
-  margin-top:6px;
-  text-align:center;
-  font-size:0.95em;
-  opacity:.8;
-}
+.results-hour{text-align:center;font-size:.95em;opacity:.8;}
 
 button{
-  margin-top:8px;
   width:100%;
+  margin-top:8px;
   padding:10px;
   font-size:15px;
   border-radius:8px;
@@ -170,6 +134,19 @@ button{
 const inputs = document.querySelectorAll("input");
 const results = document.getElementById("results");
 
+const mk = document.getElementById("mk");
+const fk = document.getElementById("fk");
+const sk = document.getElementById("sk");
+const vk = document.getElementById("vk");
+const wk = document.getElementById("wk");
+const gesamt = document.getElementById("gesamt");
+const proStunde = document.getElementById("proStunde");
+
+const versandRow = document.getElementById("versandRow");
+const versandK = document.getElementById("versandK");
+const versandProzentRow = document.getElementById("versandProzentRow");
+const versandProzent = document.getElementById("versandProzent");
+
 inputs.forEach(i => i.addEventListener("input", calc));
 
 function get(id){
@@ -187,10 +164,7 @@ function calc(){
   const mat = get("material");
   const versand = get("versand");
 
-  const h = get("druckzeitStunden");
-  const m = get("druckzeitMinuten");
-  const min = h * 60 + m;
-
+  const min = get("druckzeitStunden") * 60 + get("druckzeitMinuten");
   if(!pla || !watt || !strom || !versch || !mat || min <= 0){
     results.classList.remove("visible");
     return;
@@ -203,15 +177,10 @@ function calc(){
   const verschKosten = hrs * versch;
   const wartKosten = hrs * wart;
 
-  const fehlerBasis = materialKosten + verschKosten;
-  const fehlerKosten = fehlerBasis * (fehlerP / 100);
+  const fehlerKosten = (materialKosten + verschKosten) * (fehlerP / 100);
 
   const grundKosten =
-    materialKosten +
-    fehlerKosten +
-    stromKosten +
-    verschKosten +
-    wartKosten;
+    materialKosten + fehlerKosten + stromKosten + verschKosten + wartKosten;
 
   const gesamtKosten = grundKosten + (versand > 0 ? versand : 0);
 
@@ -226,9 +195,7 @@ function calc(){
   if(versand > 0){
     versandRow.style.display = "block";
     versandK.textContent = versand.toFixed(2);
-
-    const pct = (versand / grundKosten) * 100;
-    versandProzent.textContent = pct.toFixed(1);
+    versandProzent.textContent = ((versand / grundKosten) * 100).toFixed(1);
     versandProzentRow.style.display = "block";
   } else {
     versandRow.style.display = "none";
@@ -240,14 +207,13 @@ function calc(){
 
 function copyMessage(){
   const hasVersand = versandRow.style.display !== "none";
-
   const text =
 `🖨️ *3D-Druck Kosten*
 
 ————————————
 💰 *Gesamt: ${gesamt.textContent} €*
 ————————————
-${hasVersand ? `📦 Versand: ${versandK.textContent} € (${versandProzent.textContent} %)\n` : ""}ℹ️ Details zur Kostenberechnung:
+${hasVersand ? `📦 Versand: ${versandK.textContent} € (${versandProzent.textContent} %)\n` : ""}ℹ️ Details:
 https://rubenh05-prog.github.io/3d-kosten-pwa/`;
 
   navigator.clipboard.writeText(text).then(()=>{
