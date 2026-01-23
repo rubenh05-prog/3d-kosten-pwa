@@ -1,4 +1,4 @@
-const CACHE = "3d-druck-pwa-v15.3";
+const CACHE = "3d-druck-pwa-v15.4";
 
 const FILES = [
   "./",
