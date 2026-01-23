@@ -284,8 +284,10 @@ function calc(){
   const mat=get("material");
   const min=h*60+m;
 
-  if(!pla||!watt||!strom||!versch||!mat||min<=0){
-    results.classList.remove("visible");
+  if (pla <= 0 || watt <= 0 || strom <= 0 || mat <= 0 || min <= 0) {
+  results.classList.remove("visible");
+  return;
+}
     return;
   }
 
