@@ -89,7 +89,6 @@ button{
 <li><label>Verschleiß €/h</label><div class="input-wrap"><input id="verschleiss" type="number"></div></li>
 <li><label>Fehldruck-Puffer %</label><div class="input-wrap"><input id="fehlerProzent" type="number"></div></li>
 <li><label>Wartung €/h</label><div class="input-wrap"><input id="wartung" type="number"></div></li>
-<li><label>Versandkosten €</label><div class="input-wrap"><input id="versand" type="number" step="0.01"></div></li>
 
 <li>
   <label>Druckzeit</label>
@@ -110,7 +109,6 @@ button{
     <div>Strom: <span id="sk"></span> €</div>
     <div>Verschleiß: <span id="vk"></span> €</div>
     <div>Wartung: <span id="wk"></span> €</div>
-    <div id="versandRow" style="display:none">Versand: <span id="versandK"></span> €</div>
   </div>
 
   <div class="results-total">
@@ -119,10 +117,6 @@ button{
 
   <div class="results-hour">
     ≈ <span id="proStunde"></span> € / h
-  </div>
-
-  <div class="results-hour" id="versandProzentRow" style="display:none">
-    Versand beträgt <span id="versandProzent"></span> %
   </div>
 
   <button onclick="copyMessage()">📋 Nachricht kopieren</button>
@@ -142,11 +136,6 @@ const wk = document.getElementById("wk");
 const gesamt = document.getElementById("gesamt");
 const proStunde = document.getElementById("proStunde");
 
-const versandRow = document.getElementById("versandRow");
-const versandK = document.getElementById("versandK");
-const versandProzentRow = document.getElementById("versandProzentRow");
-const versandProzent = document.getElementById("versandProzent");
-
 inputs.forEach(i => i.addEventListener("input", calc));
 
 function get(id){
@@ -162,7 +151,6 @@ function calc(){
   const fehlerP = get("fehlerProzent");
   const wart = get("wartung");
   const mat = get("material");
-  const versand = get("versand");
 
   const min = get("druckzeitStunden") * 60 + get("druckzeitMinuten");
   if(!pla || !watt || !strom || !versch || !mat || min <= 0){
@@ -179,10 +167,12 @@ function calc(){
 
   const fehlerKosten = (materialKosten + verschKosten) * (fehlerP / 100);
 
-  const grundKosten =
-    materialKosten + fehlerKosten + stromKosten + verschKosten + wartKosten;
-
-  const gesamtKosten = grundKosten + (versand > 0 ? versand : 0);
+  const gesamtKosten =
+    materialKosten +
+    fehlerKosten +
+    stromKosten +
+    verschKosten +
+    wartKosten;
 
   mk.textContent = materialKosten.toFixed(2);
   fk.textContent = fehlerKosten.toFixed(2);
@@ -192,28 +182,17 @@ function calc(){
   gesamt.textContent = gesamtKosten.toFixed(2);
   proStunde.textContent = (gesamtKosten / hrs).toFixed(2);
 
-  if(versand > 0){
-    versandRow.style.display = "block";
-    versandK.textContent = versand.toFixed(2);
-    versandProzent.textContent = ((versand / grundKosten) * 100).toFixed(1);
-    versandProzentRow.style.display = "block";
-  } else {
-    versandRow.style.display = "none";
-    versandProzentRow.style.display = "none";
-  }
-
   results.classList.add("visible");
 }
 
 function copyMessage(){
-  const hasVersand = versandRow.style.display !== "none";
   const text =
 `🖨️ *3D-Druck Kosten*
 
 ————————————
 💰 *Gesamt: ${gesamt.textContent} €*
 ————————————
-${hasVersand ? `📦 Versand: ${versandK.textContent} € (${versandProzent.textContent} %)\n` : ""}ℹ️ Details:
+ℹ️ Details zur Kostenberechnung:
 https://rubenh05-prog.github.io/3d-kosten-pwa/`;
 
   navigator.clipboard.writeText(text).then(()=>{
