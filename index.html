@@ -288,8 +288,6 @@ function calc(){
   results.classList.remove("visible");
   return;
 }
-    return;
-  }
 
   const hrs = min / 60;
 
@@ -304,8 +302,6 @@ const fehlerBasis =
 const fehlerKosten = fehlerBasis * (fehlerP / 100);
 
 const stromKosten = (watt / 1000) * hrs * strom;
-  const verschKosten=hrs*versch;
-  const wartKosten=hrs*wart;
 
   const gesamtKosten=
     materialKosten+
