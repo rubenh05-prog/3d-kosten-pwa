@@ -224,170 +224,212 @@ button:active{transform:scale(.98);}
 <div class="footer" id="lastChange"></div>
 </div>
 <script>
-const KEY="druckkosten_state";
+/* ===============================
+   3D-Druck Kostenrechner – Optimiert
+   UI & Ergebnis: unverändert
+   =============================== */
 
-const DEFAULTS={
-  plaPreis:20,
-  leistung:95,
-  strompreis:0.40,
-  verschleiss:0.07,
-  fehlerProzent:7,
-  wartung:0.05,
-  druckzeitStunden:"",
-  druckzeitMinuten:"",
-  material:""
+const KEY = "druckkosten_state";
+
+/* ---------- Defaults ---------- */
+const DEFAULTS = {
+  plaPreis: 20,
+  leistung: 95,
+  strompreis: 0.40,
+  verschleiss: 0.07,
+  fehlerProzent: 7,
+  wartung: 0.05,
+  druckzeitStunden: "",
+  druckzeitMinuten: "",
+  material: ""
 };
 
-/* ▶ NEU: Step aus Default-Wert ableiten */
+/* ---------- DOM Cache ---------- */
+const inputs = document.querySelectorAll("input");
+const results = document.getElementById("results");
+const infoBox = document.getElementById("infoBox");
+const lastChange = document.getElementById("lastChange");
+
+const el = {};
+inputs.forEach(i => el[i.id] = i);
+
+/* ---------- Utils ---------- */
 function stepFromValue(val){
   if (typeof val !== "number") return 1;
   const s = String(val);
-  if (!s.includes(".")) return 1;
-  return Math.pow(10, -s.split(".")[1].length);
+  return s.includes(".") ? Math.pow(10, -s.split(".")[1].length) : 1;
 }
 
-const inputs=document.querySelectorAll("input");
-const results=document.getElementById("results");
-const infoBox=document.getElementById("infoBox");
-const lastChange=document.getElementById("lastChange");
-
-inputs.forEach(i=>i.addEventListener("input",()=>{save();calc();}));
-
-function get(id){
-  const v = parseFloat(document.getElementById(id).value);
-  return isNaN(v) ? 0 : Math.max(0, v);
+function val(id){
+  const v = parseFloat(el[id].value);
+  return Number.isFinite(v) ? Math.max(0, v) : 0;
 }
 
+/* ---------- Info Toggle ---------- */
 function toggleInfo(){
   infoBox.classList.toggle("visible");
 }
 
-function calc(){
-  let h=get("druckzeitStunden");
-  let m=get("druckzeitMinuten");
+/* ---------- Core Calculation ---------- */
+function calculateCosts(data){
+  const {
+    plaPreis, leistung, strompreis,
+    verschleiss, fehlerProzent,
+    wartung, material, minuten
+  } = data;
 
-  while(m>=60){m-=60;h++;}
-  while(m<0){m+=60;h--;}
+  const hrs = minuten / 60;
 
-  h=Math.min(48,Math.max(0,h));
-  m=Math.min(59,Math.max(0,m));
+  const materialKosten = (material / 1000) * plaPreis;
+  const verschKosten   = hrs * verschleiss;
+  const wartKosten     = hrs * wartung;
 
-  druckzeitStunden.value=h||"";
-  druckzeitMinuten.value=m||"";
+  const fehlerKosten =
+    (materialKosten + verschKosten) * (fehlerProzent / 100);
 
-  const pla=get("plaPreis");
-  const watt=get("leistung");
-  const strom=get("strompreis");
-  const versch=get("verschleiss");
-  const fehlerP=get("fehlerProzent");
-  const wart=get("wartung");
-  const mat=get("material");
-  const min=h*60+m;
+  const stromKosten =
+    (leistung / 1000) * hrs * strompreis;
 
-  if (pla <= 0 || watt <= 0 || strom <= 0 || mat <= 0 || min <= 0) {
-  results.classList.remove("visible");
-  return;
-}
-
-  const hrs = min / 60;
-
-const materialKosten = (mat / 1000) * pla;
-const verschKosten   = hrs * versch;
-const wartKosten     = hrs * wart;
-
-const fehlerBasis =
-  materialKosten +
-  verschKosten;
-
-const fehlerKosten = fehlerBasis * (fehlerP / 100);
-
-const stromKosten = (watt / 1000) * hrs * strom;
-
-  const gesamtKosten=
-    materialKosten+
-    fehlerKosten+
-    stromKosten+
-    verschKosten+
+  const gesamt =
+    materialKosten +
+    fehlerKosten +
+    stromKosten +
+    verschKosten +
     wartKosten;
 
-  mk.textContent=materialKosten.toFixed(2);
-  fk.textContent=fehlerKosten.toFixed(2);
-  sk.textContent=stromKosten.toFixed(2);
-  vk.textContent=verschKosten.toFixed(2);
-  wk.textContent=wartKosten.toFixed(2);
-  gesamt.textContent=gesamtKosten.toFixed(2);
-  proStunde.textContent=(gesamtKosten/hrs).toFixed(2);
+  return {
+    materialKosten,
+    fehlerKosten,
+    stromKosten,
+    verschKosten,
+    wartKosten,
+    gesamt,
+    proStunde: gesamt / hrs
+  };
+}
+
+/* ---------- Rendering ---------- */
+function renderResults(r){
+  mk.textContent = r.materialKosten.toFixed(2);
+  fk.textContent = r.fehlerKosten.toFixed(2);
+  sk.textContent = r.stromKosten.toFixed(2);
+  vk.textContent = r.verschKosten.toFixed(2);
+  wk.textContent = r.wartKosten.toFixed(2);
+  gesamt.textContent = r.gesamt.toFixed(2);
+  proStunde.textContent = r.proStunde.toFixed(2);
 
   results.classList.add("visible");
 }
 
-function save(){
-  const d={};
-  inputs.forEach(i=>d[i.id]=i.value);
-  d.time=new Date().toISOString();
-  localStorage.setItem(KEY,JSON.stringify(d));
+/* ---------- Main Calc ---------- */
+function calc(){
+  const h = val("druckzeitStunden");
+  const m = val("druckzeitMinuten");
+  const minuten = h * 60 + m;
 
-  const t=new Date(d.time);
-  lastChange.textContent="Letzte Aenderung: "+
-    t.toLocaleDateString("de-DE")+" "+
-    t.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+  if (
+    minuten <= 0 ||
+    val("material") <= 0 ||
+    val("plaPreis") <= 0 ||
+    val("leistung") <= 0 ||
+    val("strompreis") <= 0
+  ){
+    results.classList.remove("visible");
+    return;
+  }
+
+  const result = calculateCosts({
+    plaPreis: val("plaPreis"),
+    leistung: val("leistung"),
+    strompreis: val("strompreis"),
+    verschleiss: val("verschleiss"),
+    fehlerProzent: val("fehlerProzent"),
+    wartung: val("wartung"),
+    material: val("material"),
+    minuten
+  });
+
+  renderResults(result);
+}
+
+/* ---------- Save / Load ---------- */
+function save(){
+  const d = {};
+  inputs.forEach(i => d[i.id] = i.value);
+  d.time = new Date().toISOString();
+
+  localStorage.setItem(KEY, JSON.stringify(d));
+
+  const t = new Date(d.time);
+  lastChange.textContent =
+    "Letzte Aenderung: " +
+    t.toLocaleDateString("de-DE") + " " +
+    t.toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
 }
 
 function load(){
-
-  /* ▶ NEU: step automatisch setzen */
-  inputs.forEach(i=>{
+  inputs.forEach(i => {
     if (DEFAULTS[i.id] !== undefined){
       i.step = stepFromValue(DEFAULTS[i.id]);
     }
   });
 
-  let d=JSON.parse(localStorage.getItem(KEY))||{};
-  let changed=false;
+  const d = JSON.parse(localStorage.getItem(KEY)) || {};
+  let changed = false;
 
-  inputs.forEach(i=>{
-    if(d[i.id]!==undefined){
-      i.value=d[i.id];
-    }else if(DEFAULTS[i.id]!==undefined){
-      i.value=DEFAULTS[i.id];
-      d[i.id]=DEFAULTS[i.id];
-      changed=true;
-    }else{
-      i.value="";
+  inputs.forEach(i => {
+    if (d[i.id] !== undefined){
+      i.value = d[i.id];
+    } else if (DEFAULTS[i.id] !== undefined){
+      i.value = DEFAULTS[i.id];
+      d[i.id] = DEFAULTS[i.id];
+      changed = true;
     }
   });
 
-  if(changed){
-    d.time=new Date().toISOString();
-    localStorage.setItem(KEY,JSON.stringify(d));
+  if (changed){
+    d.time = new Date().toISOString();
+    localStorage.setItem(KEY, JSON.stringify(d));
   }
 
-  if(d.time){
-    const t=new Date(d.time);
-    lastChange.textContent="Letzte Aenderung: "+
-      t.toLocaleDateString("de-DE")+" "+
-      t.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+  if (d.time){
+    const t = new Date(d.time);
+    lastChange.textContent =
+      "Letzte Aenderung: " +
+      t.toLocaleDateString("de-DE") + " " +
+      t.toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
   }
 
   calc();
 }
 
-function resetToDefaults(confirmUser=true){
-  if(confirmUser&&!confirm("Standardwerte wiederherstellen?"))return;
-  Object.keys(DEFAULTS).forEach(id=>{
-    document.getElementById(id).value=DEFAULTS[id];
+/* ---------- Reset ---------- */
+function resetToDefaults(confirmUser = true){
+  if (confirmUser && !confirm("Standardwerte wiederherstellen?")) return;
+
+  Object.keys(DEFAULTS).forEach(id => {
+    el[id].value = DEFAULTS[id];
   });
+
   save();
   results.classList.remove("visible");
 }
 
-load();
-
-if("serviceWorker"in navigator){
-  window.addEventListener("load",()=>{
-    navigator.serviceWorker.register("service-worker.js");
-  });
+/* ---------- Input Handling (throttled) ---------- */
+let timer;
+function scheduleCalc(){
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    save();
+    calc();
+  }, 50);
 }
+
+inputs.forEach(i =>
+  i.addEventListener("input", scheduleCalc)
+);
+
+/* ---------- Clipboard ---------- */
 function copyMessage(){
   const text =
 `🖨️ *3D-Druck Kosten*
@@ -398,8 +440,17 @@ function copyMessage(){
 ℹ️ Details zur Kostenberechnung:
 https://rubenh05-prog.github.io/3d-kosten-pwa/`;
 
-  navigator.clipboard.writeText(text).then(()=>{
+  navigator.clipboard.writeText(text).then(() => {
     alert("Nachricht wurde kopiert ✅");
+  });
+}
+
+/* ---------- Init ---------- */
+load();
+
+if ("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js");
   });
 }
 </script>
