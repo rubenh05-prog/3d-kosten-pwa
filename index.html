@@ -224,10 +224,10 @@ button:active{transform:scale(.98);}
 <div class="footer" id="lastChange"></div>
 </div>
 <script>
-/* ===============================
-   3D-Druck Kostenrechner – Optimiert
-   UI & Ergebnis: unverändert
-   =============================== */
+/* ==========================================
+   3D-Druck Kostenrechner – FINAL CLEAN
+   UI & Verhalten: IDENTISCH zum Original
+   ========================================== */
 
 const KEY = "druckkosten_state";
 
@@ -265,12 +265,26 @@ function val(id){
   return Number.isFinite(v) ? Math.max(0, v) : 0;
 }
 
+/* ---------- Zeit-Normalisierung ---------- */
+function normalizeTime(h, m){
+  let minutes = h * 60 + m;
+
+  if (minutes < 0) minutes = 0;
+  if (minutes > 48 * 60) minutes = 48 * 60;
+
+  return {
+    h: Math.floor(minutes / 60),
+    m: minutes % 60,
+    minutes
+  };
+}
+
 /* ---------- Info Toggle ---------- */
 function toggleInfo(){
   infoBox.classList.toggle("visible");
 }
 
-/* ---------- Core Calculation ---------- */
+/* ---------- Rechenlogik ---------- */
 function calculateCosts(data){
   const {
     plaPreis, leistung, strompreis,
@@ -321,14 +335,18 @@ function renderResults(r){
   results.classList.add("visible");
 }
 
-/* ---------- Main Calc ---------- */
+/* ---------- Hauptberechnung ---------- */
 function calc(){
-  const h = val("druckzeitStunden");
-  const m = val("druckzeitMinuten");
-  const minuten = h * 60 + m;
+  const t = normalizeTime(
+    val("druckzeitStunden"),
+    val("druckzeitMinuten")
+  );
+
+  el.druckzeitStunden.value = t.h || "";
+  el.druckzeitMinuten.value = t.m || "";
 
   if (
-    minuten <= 0 ||
+    t.minutes <= 0 ||
     val("material") <= 0 ||
     val("plaPreis") <= 0 ||
     val("leistung") <= 0 ||
@@ -346,7 +364,7 @@ function calc(){
     fehlerProzent: val("fehlerProzent"),
     wartung: val("wartung"),
     material: val("material"),
-    minuten
+    minuten: t.minutes
   });
 
   renderResults(result);
