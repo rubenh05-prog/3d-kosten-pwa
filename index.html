@@ -218,7 +218,7 @@ button:active{transform:scale(.98);}
   <div class="results-hour">
     ≈ <span id="proStunde">0.00</span> Euro / h (Durchschnitt)
   </div>
-      <button onclick="copyMessage()">📋 Nachricht kopieren</button>
+      <button onclick="shareMessage()">📤 Ergebnis teilen</button>
 </div>
 
 <div class="footer" id="lastChange"></div>
@@ -448,17 +448,34 @@ inputs.forEach(i =>
 );
 
 /* ---------- Clipboard ---------- */
-function copyMessage(){
+async function shareMessage(){
   const text =
-`🖨️ *3D-Druck Kosten*
+`🖨️ 3D-Druck Kosten
 
-💰 *Gesamt: ${gesamt.textContent} €*`;
+💰 Gesamt: ${gesamt.textContent} €
+⏱️ Ø ${proStunde.textContent} € / h`;
 
-  navigator.clipboard.writeText(text).then(() => {
-    alert("Nachricht wurde kopiert ✅");
-  });
+  const shareData = {
+    title: "3D-Druck Kosten",
+    text: text
+  };
+  // Web Share API (Level 2 – 2026 Standard)
+  if (navigator.share && navigator.canShare(shareData)) {
+    try {
+      await navigator.share(shareData);
+    } catch (err) {
+      // Benutzer hat abgebrochen → nichts tun
+    }
+  } else {
+    // Fallback: Clipboard
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("Teilen nicht unterstützt – Text wurde kopiert ✅");
+    } catch {
+      alert("Teilen leider nicht möglich ❌");
+    }
+  }
 }
-
 /* ---------- Init ---------- */
 load();
 
