@@ -318,7 +318,7 @@ function calculateCosts(data){
     verschKosten,
     wartKosten,
     gesamt,
-    proStunde: gesamt / hrs
+    proStunde: hrs > 0 ? gesamt / hrs : 0
   };
 }
 
