@@ -452,11 +452,7 @@ function copyMessage(){
   const text =
 `🖨️ *3D-Druck Kosten*
 
-————————————
-💰 *Gesamt: ${gesamt.textContent} €*
-————————————
-ℹ️ Details zur Kostenberechnung:
-https://rubenh05-prog.github.io/3d-kosten-pwa/`;
+💰 *Gesamt: ${gesamt.textContent} €*`;
 
   navigator.clipboard.writeText(text).then(() => {
     alert("Nachricht wurde kopiert ✅");
