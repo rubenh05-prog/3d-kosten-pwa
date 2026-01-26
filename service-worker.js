@@ -1,4 +1,4 @@
-const VERSION = "v17.3";
+const VERSION = "v17.4";
 const HTML_CACHE   = `html-${VERSION}`;
 const ASSET_CACHE  = `assets-${VERSION}`;
 const IMAGE_CACHE  = `images-${VERSION}`;
@@ -8,8 +8,8 @@ const CORE_FILES = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icon-192.png",
-  "./icon-512.png"
+  "./icon-192-V2.png",
+  "./icon-512-V2.png"
 ];
 
 const htmlCache   = caches.open(HTML_CACHE);
