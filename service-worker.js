@@ -7,7 +7,9 @@ const API_CACHE    = `api-${VERSION}`;
 const CORE_FILES = [
   "./",
   "./index.html",
-  "./manifest.json"
+  "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
 const htmlCache   = caches.open(HTML_CACHE);
