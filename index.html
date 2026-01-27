@@ -151,7 +151,13 @@ button:active{transform:scale(.98);}
 <li><label>Verschleiss Euro/h</label><div class="input-wrap"><input id="verschleiss" type="number" min="0"></div></li>
 <li><label>Fehldruck-Puffer Prozent</label><div class="input-wrap"><input id="fehlerProzent" type="number" min="0"></div></li>
 <li><label>Wartung und Pflege Euro/h</label><div class="input-wrap"><input id="wartung" type="number" min="0"></div></li>
-
+<li>
+  <label>Maschinenabschreibung (einmalig)</label>
+  <div class="input-wrap">
+    <input id="maschinenAbschreibung" type="number" min="0">
+  </div>
+</li>
+<div id="maInfo" style="text-align:center;font-size:13px;opacity:.7"></div>
 <li>
   <label>Druckzeit</label>
   <div class="input-wrap time-inputs" min="0">
@@ -196,6 +202,10 @@ button:active{transform:scale(.98);}
     <strong>Gesamtkosten</strong><br>
     Summe aus Material, Fehldruck-Puffer, Strom, Verschleiss sowie Wartung und Pflege.<br><br>
 
+    <strong>Maschinenabschreibung</strong><br>
+    Einmalig eingegebener Betrag, der auf bis zu 50 Drucke verteilt wird.
+    Nach dem 50. Druck entfällt die Abschreibung automatisch.<br><br>
+
     <em>Dieser Rechner dient ausschliesslich zur Kostendeckung.<br>
     Es wird kein Gewinn berechnet.</em>
   </div>
@@ -210,6 +220,7 @@ button:active{transform:scale(.98);}
     <div>Verschleiss: <span id="vk">0.00</span> Euro</div>
     <div>Wartung und Pflege: <span id="wk">0.00</span> Euro</div>
   </div>
+  <div>Maschinenabschreibung: <span id="ma">0.00</span> Euro</div>
 
   <div class="results-total">
     Gesamt: <span id="gesamt">0.00</span> Euro
@@ -230,6 +241,8 @@ button:active{transform:scale(.98);}
    ========================================== */
 
 const KEY = "druckkosten_state";
+const MA_KEY = "maschinenabschreibung_state";
+const MA_MAX = 50;
 
 /* ---------- Defaults ---------- */
 const DEFAULTS = {
@@ -241,7 +254,9 @@ const DEFAULTS = {
   wartung: 0.05,
   druckzeitStunden: "",
   druckzeitMinuten: "",
-  material: ""
+  material: "",
+  maschinenAbschreibung: ""
+
 };
 
 /* ---------- DOM Cache ---------- */
@@ -264,7 +279,17 @@ function val(id){
   const v = parseFloat(el[id].value);
   return Number.isFinite(v) ? Math.max(0, v) : 0;
 }
+function loadMaschinenAbschreibung(){
+  const d = JSON.parse(localStorage.getItem(MA_KEY)) || {
+    betrag: 0,
+    rest: 0
+  };
+  return d;
+}
 
+function saveMaschinenAbschreibung(d){
+  localStorage.setItem(MA_KEY, JSON.stringify(d));
+}
 /* ---------- Zeit-Normalisierung ---------- */
 function normalizeTime(h, m){
   let minutes = h * 60 + m;
@@ -289,7 +314,8 @@ function calculateCosts(data){
   const {
     plaPreis, leistung, strompreis,
     verschleiss, fehlerProzent,
-    wartung, material, minuten
+    wartung, material, minuten,
+    maschinenAbschreibungProDruck
   } = data;
 
   const hrs = minuten / 60;
@@ -309,7 +335,8 @@ function calculateCosts(data){
     fehlerKosten +
     stromKosten +
     verschKosten +
-    wartKosten;
+    wartKosten +
+    maschinenAbschreibungProDruck;
 
   return {
     materialKosten,
@@ -317,6 +344,7 @@ function calculateCosts(data){
     stromKosten,
     verschKosten,
     wartKosten,
+    maschinenAbschreibungProDruck,
     gesamt,
     proStunde: hrs > 0 ? gesamt / hrs : 0
   };
@@ -333,8 +361,14 @@ function renderResults(r){
   proStunde.textContent = r.proStunde.toFixed(2);
 
   results.classList.add("visible");
+  ma.textContent = r.maschinenAbschreibungProDruck.toFixed(2);
+if (r.maschinenAbschreibungProDruck > 0){
+  const maState = loadMaschinenAbschreibung();
+  maInfo.textContent = `Abschreibung: ${MA_MAX - maState.rest} / ${MA_MAX}`;
+} else {
+  maInfo.textContent = "";
 }
-
+}
 /* ---------- Hauptberechnung ---------- */
 function calc(){
   const t = normalizeTime(
@@ -355,6 +389,36 @@ function calc(){
     results.classList.remove("visible");
     return;
   }
+let maState = loadMaschinenAbschreibung();
+let maProDruck = 0;
+
+// Feld sperren, solange Abschreibung aktiv ist
+el.maschinenAbschreibung.disabled = maState.rest > 0;
+// Wenn keine Abschreibung aktiv ist → Feld leer halten
+
+// Neue Abschreibung anlegen
+if (val("maschinenAbschreibung") > 0 && maState.rest === 0){
+
+  const betrag = val("maschinenAbschreibung");
+
+  const ok = confirm(
+    `Maschinenabschreibung über ${betrag.toFixed(2)} € starten?\n\n` +
+    `Der Betrag wird auf ${MA_MAX} Drucke verteilt.`
+  );
+
+  if (!ok){
+    el.maschinenAbschreibung.value = "";
+    return;
+  }
+
+  maState.betrag = betrag;
+  maState.rest = MA_MAX;
+  saveMaschinenAbschreibung(maState);
+}
+// Abschreibung aktiv
+if (maState.rest > 0){
+  maProDruck = maState.betrag / MA_MAX;
+}
 
   const result = calculateCosts({
     plaPreis: val("plaPreis"),
@@ -364,6 +428,7 @@ function calc(){
     fehlerProzent: val("fehlerProzent"),
     wartung: val("wartung"),
     material: val("material"),
+    maschinenAbschreibungProDruck: maProDruck,
     minuten: t.minutes
   });
 
@@ -443,12 +508,38 @@ function scheduleCalc(){
   }, 50);
 }
 
-inputs.forEach(i =>
-  i.addEventListener("input", scheduleCalc)
-);
+inputs.forEach(i => {
+  if (i.id !== "maschinenAbschreibung"){
+    i.addEventListener("input", scheduleCalc);
+    el.maschinenAbschreibung.addEventListener("change", () => {
+  save();
+  calc();
+});
+  }
+});
 
 /* ---------- Clipboard ---------- */
 async function shareMessage(){
+  if (!results.classList.contains("visible")) return;
+
+  let maState = loadMaschinenAbschreibung();
+
+  if (maState.rest > 0){
+    maState.rest--;
+
+    if (maState.rest <= 0){
+      // Abschreibung nach dem 50. Druck vollständig beendet
+      localStorage.removeItem(MA_KEY);
+      el.maschinenAbschreibung.value = "";
+      el.maschinenAbschreibung.disabled = false;
+    } else {
+      saveMaschinenAbschreibung(maState);
+    }
+  }
+
+  // Neu berechnen nach dem Zählen
+  calc();
+
   const text =
 `🖨️ 3D-Druck Kosten
 
@@ -457,17 +548,14 @@ async function shareMessage(){
 
   const shareData = {
     title: "3D-Druck Kosten",
-    text: text
+    text
   };
-  // Web Share API (Level 2 – 2026 Standard)
+
   if (navigator.share && navigator.canShare(shareData)) {
     try {
       await navigator.share(shareData);
-    } catch (err) {
-      // Benutzer hat abgebrochen → nichts tun
-    }
+    } catch {}
   } else {
-    // Fallback: Clipboard
     try {
       await navigator.clipboard.writeText(text);
       alert("Teilen nicht unterstützt – Text wurde kopiert ✅");
