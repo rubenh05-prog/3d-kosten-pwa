@@ -508,6 +508,13 @@ function resetToDefaults(confirmUser = true){
 
   save();
   results.classList.remove("visible");
+      
+  // 🔧 FIX: laufende Abschreibung optisch erhalten
+  const maState = loadMaschinenAbschreibung();
+  if (maState.rest > 0){
+    el.maschinenAbschreibung.value = maState.betrag;
+    el.maschinenAbschreibung.disabled = true;
+  }
 }
 
 /* ---------- Input Handling (throttled) ---------- */
