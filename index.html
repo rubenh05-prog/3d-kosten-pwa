@@ -362,6 +362,12 @@ function renderResults(r){
 
   results.classList.add("visible");
   ma.textContent = r.maschinenAbschreibungProDruck.toFixed(2);
+      // Maschinenabschreibung nur anzeigen, wenn > 0
+if (r.maschinenAbschreibungProDruck > 0){
+  maRow.style.display = "block";
+} else {
+  maRow.style.display = "none";
+}
 if (r.maschinenAbschreibungProDruck > 0){
   const maState = loadMaschinenAbschreibung();
   maInfo.textContent = `Abschreibung: ${MA_MAX - maState.rest} / ${MA_MAX}`;
