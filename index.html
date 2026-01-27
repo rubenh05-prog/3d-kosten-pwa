@@ -361,19 +361,22 @@ function renderResults(r){
   proStunde.textContent = r.proStunde.toFixed(2);
 
   results.classList.add("visible");
+
+  const hasMA = r.maschinenAbschreibungProDruck > 0;
+
+  // Maschinenabschreibung (Betrag)
   ma.textContent = r.maschinenAbschreibungProDruck.toFixed(2);
-      // Maschinenabschreibung nur anzeigen, wenn > 0
-if (r.maschinenAbschreibungProDruck > 0){
-  maRow.style.display = "block";
-} else {
-  maRow.style.display = "none";
-}
-if (r.maschinenAbschreibungProDruck > 0){
-  const maState = loadMaschinenAbschreibung();
-  maInfo.textContent = `Abschreibung: ${MA_MAX - maState.rest} / ${MA_MAX}`;
-} else {
-  maInfo.textContent = "";
-}
+  maRow.style.display = hasMA ? "block" : "none";
+
+  // Fortschrittsanzeige
+  if (hasMA){
+    const maState = loadMaschinenAbschreibung();
+    maInfo.textContent = `Abschreibung: ${MA_MAX - maState.rest} / ${MA_MAX}`;
+    maInfo.style.display = "block";
+  } else {
+    maInfo.textContent = "";
+    maInfo.style.display = "none";
+  }
 }
 /* ---------- Hauptberechnung ---------- */
 function calc(){
