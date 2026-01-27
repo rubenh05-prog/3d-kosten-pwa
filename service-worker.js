@@ -1,4 +1,4 @@
-const VERSION = "v17.6";
+const VERSION = "v17.7";
 const HTML_CACHE   = `html-${VERSION}`;
 const ASSET_CACHE  = `assets-${VERSION}`;
 const IMAGE_CACHE  = `images-${VERSION}`;
