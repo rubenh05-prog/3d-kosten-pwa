@@ -1,4 +1,14 @@
-const VERSION = "v18.4";
+/* ==========================================
+   Service Worker – Optimiert & Stabil
+   Verbesserungen:
+   1) Caches lokal öffnen (kein globales Promise)
+   2) Network-First immer mit Fallback
+   3) Stale-While-Revalidate mit Fehlerabsicherung
+   4) Iteratives Cache-Limit (keine Rekursion)
+   ========================================== */
+
+const VERSION = "v18.5";
+
 const HTML_CACHE   = `html-${VERSION}`;
 const ASSET_CACHE  = `assets-${VERSION}`;
 const IMAGE_CACHE  = `images-${VERSION}`;
@@ -12,34 +22,29 @@ const CORE_FILES = [
   "./icon-512-V2.png"
 ];
 
-const htmlCache   = caches.open(HTML_CACHE);
-const assetCache  = caches.open(ASSET_CACHE);
-const imageCache  = caches.open(IMAGE_CACHE);
-const apiCache    = caches.open(API_CACHE);
-
-/* INSTALL */
+/* ---------- INSTALL ---------- */
 self.addEventListener("install", event => {
   event.waitUntil(
-    htmlCache.then(c => c.addAll(CORE_FILES))
+    caches.open(HTML_CACHE).then(cache => cache.addAll(CORE_FILES))
   );
   self.skipWaiting();
 });
 
-/* ACTIVATE */
+/* ---------- ACTIVATE ---------- */
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys.filter(k =>
-          ![HTML_CACHE, ASSET_CACHE, IMAGE_CACHE, API_CACHE].includes(k)
-        ).map(k => caches.delete(k))
+        keys
+          .filter(k => ![HTML_CACHE, ASSET_CACHE, IMAGE_CACHE, API_CACHE].includes(k))
+          .map(k => caches.delete(k))
       )
     )
   );
   self.clients.claim();
 });
 
-/* FETCH */
+/* ---------- FETCH ---------- */
 self.addEventListener("fetch", event => {
   const req = event.request;
   const url = new URL(req.url);
@@ -49,7 +54,7 @@ self.addEventListener("fetch", event => {
 
   /* HTML → Network First */
   if (req.destination === "document") {
-    event.respondWith(networkFirst(req, htmlCache));
+    event.respondWith(networkFirst(req, HTML_CACHE));
     return;
   }
 
@@ -61,51 +66,58 @@ self.addEventListener("fetch", event => {
 
   /* Bilder → Stale While Revalidate */
   if (req.destination === "image") {
-    event.respondWith(staleWhileRevalidate(req, imageCache, 60));
+    event.respondWith(staleWhileRevalidate(req, IMAGE_CACHE, 60));
     return;
   }
 
   /* Assets → Cache First */
-  event.respondWith(cacheFirst(req, assetCache));
+  event.respondWith(cacheFirst(req, ASSET_CACHE));
 });
 
 /* ================= HELPERS ================= */
 
-async function networkFirst(req, cachePromise) {
+/* ---------- Network First (immer mit Fallback) ---------- */
+async function networkFirst(req, cacheName){
   try {
     const res = await fetch(req);
-    cachePromise.then(c => c.put(req, res.clone()));
+    const cache = await caches.open(cacheName);
+    cache.put(req, res.clone());
     return res;
   } catch {
-    return caches.match(req);
+    const cached = await caches.match(req);
+    return cached || new Response("Offline", { status: 503 });
   }
 }
 
-async function cacheFirst(req, cachePromise) {
+/* ---------- Cache First ---------- */
+async function cacheFirst(req, cacheName){
   const cached = await caches.match(req);
   if (cached) return cached;
 
   const res = await fetch(req);
-  cachePromise.then(c => c.put(req, res.clone()));
+  const cache = await caches.open(cacheName);
+  cache.put(req, res.clone());
   return res;
 }
 
-async function staleWhileRevalidate(req, cachePromise, maxItems) {
-  const cached = await caches.match(req);
+/* ---------- Stale While Revalidate (robust) ---------- */
+async function staleWhileRevalidate(req, cacheName, maxItems){
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(req);
 
-  const fetchPromise = fetch(req).then(res => {
-    cachePromise.then(c => {
-      c.put(req, res.clone());
-      limitCache(c, maxItems);
-    });
-    return res;
-  });
+  const fetchPromise = fetch(req)
+    .then(res => {
+      cache.put(req, res.clone());
+      limitCache(cache, maxItems);
+      return res;
+    })
+    .catch(() => cached);
 
   return cached || fetchPromise;
 }
 
-/* API – iOS-sicher */
-async function apiNetworkFirst(req) {
+/* ---------- API – Network First mit Timeout (iOS-safe) ---------- */
+async function apiNetworkFirst(req){
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 4000);
 
@@ -113,18 +125,19 @@ async function apiNetworkFirst(req) {
     const res = await fetch(req, { signal: controller.signal });
     clearTimeout(timeout);
 
-    apiCache.then(c => c.put(req, res.clone()));
+    const cache = await caches.open(API_CACHE);
+    cache.put(req, res.clone());
     return res;
   } catch {
     return caches.match(req);
   }
 }
 
-/* Cache Limit */
-async function limitCache(cache, max) {
-  const keys = await cache.keys();
-  if (keys.length > max) {
+/* ---------- Cache Limit (iterativ, stabil) ---------- */
+async function limitCache(cache, max){
+  let keys = await cache.keys();
+  while (keys.length > max){
     await cache.delete(keys[0]);
-    limitCache(cache, max);
+    keys = await cache.keys();
   }
 }
