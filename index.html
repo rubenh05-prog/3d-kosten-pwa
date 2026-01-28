@@ -435,6 +435,8 @@ maUserTriggered = false;
   maState.betrag = betrag;
   maState.rest = MA_MAX;
   saveMaschinenAbschreibung(maState);
+// 🔒 Feld SOFORT sperren (kein 1× Nachändern mehr)
+el.maschinenAbschreibung.disabled = true;
 }
 // Abschreibung aktiv
 if (maState.rest > 0){
