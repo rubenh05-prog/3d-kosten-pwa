@@ -249,6 +249,7 @@ button:active{transform:scale(.98);}
 const KEY = "druckkosten_state";
 const MA_KEY = "maschinenabschreibung_state";
 const MA_MAX = 50;
+let maUserTriggered = false;
 
 /* ---------- Defaults ---------- */
 const DEFAULTS = {
@@ -412,7 +413,11 @@ el.maschinenAbschreibung.disabled = maState.rest > 0;
 // Wenn keine Abschreibung aktiv ist → Feld leer halten
 
 // Neue Abschreibung anlegen
-if (val("maschinenAbschreibung") > 0 && maState.rest === 0){
+if (
+  maUserTriggered &&
+  val("maschinenAbschreibung") > 0 &&
+  maState.rest === 0
+){
 
   const betrag = val("maschinenAbschreibung");
 
@@ -420,6 +425,7 @@ if (val("maschinenAbschreibung") > 0 && maState.rest === 0){
     `Maschinenabschreibung über ${betrag.toFixed(2)} € starten?\n\n` +
     `Der Betrag wird auf ${MA_MAX} Drucke verteilt.`
   );
+maUserTriggered = false;
 
   if (!ok){
     el.maschinenAbschreibung.value = "";
@@ -537,6 +543,7 @@ inputs.forEach(i => {
 });
 
 el.maschinenAbschreibung.addEventListener("change", () => {
+  maUserTriggered = true;
   save();
   calc();
 });
