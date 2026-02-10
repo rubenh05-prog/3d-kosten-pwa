@@ -246,8 +246,14 @@ button:active{transform:scale(.98);}
 
 const KEY = "druckkosten_state";
 const MA_KEY = "maschinenabschreibung_state";
-const MA_MAX = 50;
+let MA_MAX = 0;
 let maUserTriggered = false;
+
+function getMaMaxFromAmount(betrag){
+  if (betrag <= 500) return 50;
+  if (betrag <= 1000) return 80;
+  return 120;
+}
 
 /* ---------- Defaults ---------- */
 const DEFAULTS = {
@@ -430,15 +436,18 @@ maUserTriggered = false;
     return;
   }
 
+MA_MAX = getMaMaxFromAmount(betrag);
+
   maState.betrag = betrag;
   maState.rest = MA_MAX;
+  maState.max = MA_MAX; // merken für Anzeige & Rechnen
   saveMaschinenAbschreibung(maState);
 // 🔒 Feld SOFORT sperren (kein 1× Nachändern mehr)
 el.maschinenAbschreibung.disabled = true;
 }
 // Abschreibung aktiv
 if (maState.rest > 0){
-  maProDruck = maState.betrag / MA_MAX;
+  maProDruck = maState.betrag / maState.max;
 }
 
   const result = calculateCosts({
