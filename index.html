@@ -382,7 +382,8 @@ function renderResults(r){
   // Fortschrittsanzeige
   if (hasMA){
     const maState = loadMaschinenAbschreibung();
-    maInfo.textContent = `Abschreibung: ${MA_MAX - maState.rest} / ${MA_MAX}`;
+    maInfo.textContent =
+  `Abschreibung: ${maState.max - maState.rest} / ${maState.max}`;
     maInfo.style.display = "block";
   } else {
     maInfo.textContent = "";
