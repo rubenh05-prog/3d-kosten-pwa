@@ -291,10 +291,14 @@ function val(id){
   return Number.isFinite(v) ? Math.max(0, v) : 0;
 }
 function loadMaschinenAbschreibung(){
-  const d = JSON.parse(localStorage.getItem(MA_KEY)) || {
-    betrag: 0,
-    rest: 0
-  };
+  const d = JSON.parse(localStorage.getItem(MA_KEY)) || { betrag: 0, rest: 0 };
+
+  // 🔧 FIX: max nachträglich korrekt setzen (z.B. nach Reload)
+  if (d.rest > 0 && (!d.max || d.max === 0)){
+    d.max = getMaMaxFromAmount(d.betrag);
+    localStorage.setItem(MA_KEY, JSON.stringify(d));
+  }
+
   return d;
 }
 
