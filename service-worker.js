@@ -7,7 +7,7 @@
    4) Iteratives Cache-Limit (keine Rekursion)
    ========================================== */
 
-const VERSION = "v18.8";
+const VERSION = "v18.9";
 
 const HTML_CACHE   = `html-${VERSION}`;
 const ASSET_CACHE  = `assets-${VERSION}`;
