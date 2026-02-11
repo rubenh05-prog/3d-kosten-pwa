@@ -1,622 +1,683 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>3D-Druck Kosten Rechner</title>
+    <title>3D-Druck Kosten Rechner</title>
 
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="3D-Druck">
-<link rel="apple-touch-icon" href="icon-192.png"
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="3D-Druck">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffcc00">
+    <meta name="color-scheme" content="light dark">
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffcc00">
-<meta name="color-scheme" content="light dark">
+    <style>
+        :root {
+            --bg: #f4f4f4;
+            --card: #ffffff;
+            --text: #000000;
+            --border: #cccccc;
+            --accent: #ffcc00;
+        }
 
-<style>
-:root{
-  --bg:#f4f4f4;
-  --card:#ffffff;
-  --text:#000000;
-  --border:#cccccc;
-  --accent:#ffcc00;
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#121212;
-    --card:#1e1e1e;
-    --text:#f1f1f1;
-    --border:#333333;
-  }
-}
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #121212;
+                --card: #1e1e1e;
+                --text: #f1f1f1;
+                --border: #333333;
+            }
+        }
 
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  display:flex;
-  justify-content:center;
-  padding:16px;
-}
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 16px;
+        }
 
-.container{width:100%;max-width:380px;}
+        .container {
+            width: 100%;
+            max-width: 380px;
+        }
 
-.card{
-  background:var(--card);
-  border-radius:14px;
-  padding:16px;
-}
-.card.top{border-top:6px solid var(--accent);margin-bottom:6px;}
-.card.results{margin-bottom:6px;}
-.card.results:not(.visible){margin-bottom:0;}
+        .card {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 16px;
+        }
 
-ul{list-style:none;padding:0;margin:0;}
+        .card.top {
+            border-top: 6px solid var(--accent);
+            margin-bottom: 6px;
+        }
 
-li{
-  display:flex;
-  align-items:center;
-  margin-bottom:12px;
-  gap:18px;
-}
+        .card.results {
+            margin-bottom: 6px;
+        }
 
-label{flex:1;font-weight:600;font-size:16px;}
+        .card.results:not(.visible) {
+            margin-bottom: 0;
+        }
 
-.input-wrap{
-  flex:0 0 150px;
-  display:flex;
-  justify-content:center;
-}
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
 
-input{
-  width:130px;
-  padding:10px;
-  font-size:16px;
-  border-radius:8px;
-  border:1px solid var(--border);
-  background:var(--card);
-  color:var(--text);
-  text-align:center;
-}
+        li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 18px;
+        }
 
-.time-inputs{display:flex;gap:8px;}
-.time-inputs input{width:62px;}
+        label {
+            flex: 1;
+            font-weight: 600;
+            font-size: 16px;
+        }
 
-.results{
-  opacity:0;
-  max-height:0;
-  overflow:hidden;
-  transition:.2s ease;
-}
-.results.visible{
-  opacity:1;
-  max-height:1000px;
-}
+        .input-wrap {
+            flex: 0 0 150px;
+            display: flex;
+            justify-content: center;
+        }
 
-.results-list div{
-  text-align:center;
-  margin-bottom:6px;
-}
+        input {
+            width: 130px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            text-align: center;
+        }
 
-.results-total{
-  margin-top:12px;
-  text-align:center;
-  font-size:1.7em;
-  font-weight:bold;
-  color:var(--accent);
-}
+        .time-inputs {
+            display: flex;
+            gap: 8px;
+        }
 
-.results-hour{
-  margin-top:6px;
-  text-align:center;
-  font-size:0.95em;
-  opacity:.75;
-}
+        .time-inputs input {
+            width: 62px;
+        }
 
-.footer{
-  text-align:center;
-  font-size:13px;
-  opacity:.7;
-  margin-top:4px;
-}
+        .results {
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: .2s ease;
+        }
 
-button{
-  margin-top:8px;
-  width:100%;
-  padding:10px;
-  font-size:15px;
-  border-radius:8px;
-  border:1px solid var(--border);
-  background:transparent;
-  color:var(--text);
-}
-button:active{transform:scale(.98);}
-</style>
+        .results.visible {
+            opacity: 1;
+            max-height: 1000px;
+        }
+
+        .results-list div {
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .results-total {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 1.7em;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .results-hour {
+            margin-top: 6px;
+            text-align: center;
+            font-size: 0.95em;
+            opacity: .75;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 13px;
+            opacity: .7;
+            margin-top: 4px;
+        }
+
+        button {
+            margin-top: 8px;
+            width: 100%;
+            padding: 10px;
+            font-size: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+        }
+
+        button:active {
+            transform: scale(.98);
+        }
+    </style>
 </head>
 
 <body>
-<div class="container">
-
-<div class="card top">
-<ul>
-<li><label>Filament Euro/kg</label><div class="input-wrap"><input id="plaPreis" type="number" min="0"></div></li>
-<li><label>Leistung (W) Durchschnitt</label><div class="input-wrap"><input id="leistung" type="number" min="0"></div></li>
-<li><label>Strom Euro/kWh</label><div class="input-wrap"><input id="strompreis" type="number" min="0"></div></li>
-<li><label>Verschleiss Euro/h</label><div class="input-wrap"><input id="verschleiss" type="number" min="0"></div></li>
-<li><label>Fehldruck-Puffer Prozent</label><div class="input-wrap"><input id="fehlerProzent" type="number" min="0"></div></li>
-<li><label>Wartung und Pflege Euro/h</label><div class="input-wrap"><input id="wartung" type="number" min="0"></div></li>
-<li>
-  <label>Maschinenabschreibung<br> in Euro (einmalig)</label>
-  <div class="input-wrap">
-    <input id="maschinenAbschreibung" type="number" min="0">
-  </div>
-</li>
-<div id="maInfo" style="text-align:center;font-size:13px;opacity:.7"></div>
-<li>
-  <label>Druckzeit</label>
-  <div class="input-wrap time-inputs" min="0">
-    <input id="druckzeitStunden" type="number" placeholder="h" min="0">
-    <input id="druckzeitMinuten" type="number" placeholder="min" min="0">
-  </div>
-</li>
-
-<li><label>Material (g)</label><div class="input-wrap"><input id="material" type="number" min="0"></div></li>
-</ul>
-
-<button onclick="resetToDefaults()">🔄 Standardwerte wiederherstellen</button>
-<button onclick="toggleInfo()">ℹ️ Wie wird gerechnet?</button>
-</div>
-
-<!-- Info Box -->
-<div class="card results" id="infoBox">
-  <div class="results-list" style="font-size:14px;text-align:left">
-    <strong>Wie wird gerechnet?</strong><br><br>
-
-    <strong>Materialkosten</strong><br>
-    (Material in g / 1000) × Filamentpreis (Euro pro kg)<br><br>
-
-    <strong>Fehldruck-Puffer</strong><br>
-      (Materialkosten + Verschleißkosten)<br>
-      × (Fehldruck-Puffer in Prozent / 100)<br><br>
-
-      Der Fehldruck-Puffer berücksichtigt neben dem verbrauchten Material
-      auch den zusätzlichen Verschleiß durch fehlgeschlagene Drucke.<br><br>
-
-
-    <strong>Stromkosten</strong><br>
-    (Leistung in Watt / 1000) × Druckzeit in Stunden × Strompreis (Euro pro kWh)<br>
-    <em>Die angegebene Leistung ist der durchschnittliche Wert über die gesamte Druckzeit (inklusive Aufheizen).</em><br><br>
-
-    <strong>Verschleisskosten</strong><br>
-    Druckzeit in Stunden × Verschleisskosten (Euro pro Stunde)<br><br>
-
-    <strong>Wartung und Pflege</strong><br>
-    Druckzeit in Stunden × Wartungskosten (Euro pro Stunde)<br><br>
-
-    <strong>Gesamtkosten</strong><br>
-    Summe aus Material, Fehldruck-Puffer, Strom, Verschleiss sowie Wartung und Pflege.<br><br>
-
-    <strong>Maschinenabschreibung</strong><br>
-    Einmalig eingegebener Betrag, der auf 50, 80 oder 120 (nach Betrag) Drucke verteilt wird.
-    Nach dem Erreichen der Druck entfällt die Abschreibung automatisch.<br><br>
-
-    <em>Dieser Rechner dient ausschliesslich zur Kostendeckung.<br>
-    Es wird kein Gewinn berechnet.</em>
-  </div>
-</div>
-
-<!-- Ergebnisse -->
-<div class="card results" id="results">
-  <div class="results-list">
-    <div>Material: <span id="mk">0.00</span> Euro</div>
-    <div>Fehldruck-Puffer: <span id="fk">0.00</span> Euro</div>
-    <div>Strom: <span id="sk">0.00</span> Euro</div>
-    <div>Verschleiss: <span id="vk">0.00</span> Euro</div>
-    <div>Wartung und Pflege: <span id="wk">0.00</span> Euro</div>
-  <div id="maRow" style="display:none;text-align:center;">
-  Maschinenabschreibung: <span id="ma">0.00</span> Euro
-</div>
-
-  </div>
-
-  <div class="results-total">
-    Gesamt: <span id="gesamt">0.00</span> Euro
-  </div>
-
-  <div class="results-hour">
-    ≈ <span id="proStunde">0.00</span> Euro / h (Durchschnitt)
-  </div>
-      <button onclick="shareMessage()">📤 Ergebnis teilen</button>
-<div id="shareHint" style="margin-top:6px;text-align:center;font-size:12px;opacity:.6;">
-  Hinweis: Wenn enthalten, wird „Ergebnis teilen“ als eine Abschreibung gezählt.
-</div>
-</div>
-      <div class="footer" id="lastChange"></div>
-<script>
-/* ==========================================
-   3D-Druck Kostenrechner – FINAL CLEAN
-   UI & Verhalten: IDENTISCH zum Original
-   ========================================== */
-
-const KEY = "druckkosten_state";
-const MA_KEY = "maschinenabschreibung_state";
-let MA_MAX = 0;
-let maUserTriggered = false;
-
-function getMaMaxFromAmount(betrag){
-  if (betrag <= 500) return 50;
-  if (betrag <= 1000) return 80;
-  return 120;
-}
-
-/* ---------- Defaults ---------- */
-const DEFAULTS = {
-  plaPreis: 20,
-  leistung: 95,
-  strompreis: 0.40,
-  verschleiss: 0.07,
-  fehlerProzent: 7,
-  wartung: 0.05,
-  druckzeitStunden: "",
-  druckzeitMinuten: "",
-  material: "",
-  maschinenAbschreibung: ""
-
-};
-
-/* ---------- DOM Cache ---------- */
-const inputs = document.querySelectorAll("input");
-const results = document.getElementById("results");
-const infoBox = document.getElementById("infoBox");
-const lastChange = document.getElementById("lastChange");
-
-const el = {};
-inputs.forEach(i => el[i.id] = i);
-
-/* ---------- Utils ---------- */
-function stepFromValue(val){
-  if (typeof val !== "number") return 1;
-  const s = String(val);
-  return s.includes(".") ? Math.pow(10, -s.split(".")[1].length) : 1;
-}
-
-function val(id){
-  const v = parseFloat(el[id].value);
-  return Number.isFinite(v) ? Math.max(0, v) : 0;
-}
-function loadMaschinenAbschreibung(){
-  const d = JSON.parse(localStorage.getItem(MA_KEY)) || { betrag: 0, rest: 0 };
-
-  // 🔧 FIX: max nachträglich korrekt setzen (z.B. nach Reload)
-  if (d.rest > 0 && (!d.max || d.max === 0)){
-    d.max = getMaMaxFromAmount(d.betrag);
-    localStorage.setItem(MA_KEY, JSON.stringify(d));
-  }
-
-  return d;
-}
-
-function saveMaschinenAbschreibung(d){
-  localStorage.setItem(MA_KEY, JSON.stringify(d));
-}
-/* ---------- Zeit-Normalisierung ---------- */
-function normalizeTime(h, m){
-  let minutes = h * 60 + m;
-
-  if (minutes < 0) minutes = 0;
-  if (minutes > 48 * 60) minutes = 48 * 60;
-
-  return {
-    h: Math.floor(minutes / 60),
-    m: minutes % 60,
-    minutes
-  };
-}
-
-/* ---------- Info Toggle ---------- */
-function toggleInfo(){
-  infoBox.classList.toggle("visible");
-}
-
-/* ---------- Rechenlogik ---------- */
-function calculateCosts(data){
-  const {
-    plaPreis, leistung, strompreis,
-    verschleiss, fehlerProzent,
-    wartung, material, minuten,
-    maschinenAbschreibungProDruck
-  } = data;
-
-  const hrs = minuten / 60;
-
-  const materialKosten = (material / 1000) * plaPreis;
-  const verschKosten   = hrs * verschleiss;
-  const wartKosten     = hrs * wartung;
-
-  const fehlerKosten =
-    (materialKosten + verschKosten) * (fehlerProzent / 100);
-
-  const stromKosten =
-    (leistung / 1000) * hrs * strompreis;
-
-  const gesamt =
-    materialKosten +
-    fehlerKosten +
-    stromKosten +
-    verschKosten +
-    wartKosten +
-    maschinenAbschreibungProDruck;
-
-  return {
-    materialKosten,
-    fehlerKosten,
-    stromKosten,
-    verschKosten,
-    wartKosten,
-    maschinenAbschreibungProDruck,
-    gesamt,
-    proStunde: hrs > 0 ? gesamt / hrs : 0
-  };
-}
-
-/* ---------- Rendering ---------- */
-function renderResults(r){
-  mk.textContent = r.materialKosten.toFixed(2);
-  fk.textContent = r.fehlerKosten.toFixed(2);
-  sk.textContent = r.stromKosten.toFixed(2);
-  vk.textContent = r.verschKosten.toFixed(2);
-  wk.textContent = r.wartKosten.toFixed(2);
-  gesamt.textContent = r.gesamt.toFixed(2);
-  proStunde.textContent = r.proStunde.toFixed(2);
-
-  results.classList.add("visible");
-
-  const hasMA = r.maschinenAbschreibungProDruck > 0;
-
-  // Maschinenabschreibung (Betrag)
-  ma.textContent = r.maschinenAbschreibungProDruck.toFixed(2);
-  maRow.style.display = hasMA ? "block" : "none";
-
-  // Fortschrittsanzeige
-  if (hasMA){
-    const maState = loadMaschinenAbschreibung();
-    maInfo.textContent =
-  `Abschreibung: ${maState.max - maState.rest} / ${maState.max}`;
-    maInfo.style.display = "block";
-  } else {
-    maInfo.textContent = "";
-    maInfo.style.display = "none";
-  }
-}
-/* ---------- Hauptberechnung ---------- */
-function calc(){
-  const t = normalizeTime(
-    val("druckzeitStunden"),
-    val("druckzeitMinuten")
-  );
-
-  el.druckzeitStunden.value = t.h || "";
-  el.druckzeitMinuten.value = t.m || "";
-
-  if (
-    t.minutes <= 0 ||
-    val("material") <= 0 ||
-    val("plaPreis") <= 0 ||
-    val("leistung") <= 0 ||
-    val("strompreis") <= 0
-  ){
-    results.classList.remove("visible");
-    return;
-  }
-let maState = loadMaschinenAbschreibung();
-let maProDruck = 0;
-
-// Feld sperren, solange Abschreibung aktiv ist
-el.maschinenAbschreibung.disabled = maState.rest > 0;
-// Wenn keine Abschreibung aktiv ist → Feld leer halten
-
-// Neue Abschreibung anlegen
-if (
-  maUserTriggered &&
-  val("maschinenAbschreibung") > 0 &&
-  maState.rest === 0
-){
-
-  const betrag = val("maschinenAbschreibung");
-  
-  MA_MAX = getMaMaxFromAmount(betrag);
-
-  const ok = confirm(
-    `Maschinenabschreibung über ${betrag.toFixed(2)} € starten?\n\n` +
-    `Der Betrag wird auf ${MA_MAX} Drucke verteilt.`
-  );
-maUserTriggered = false;
-
-  if (!ok){
-    el.maschinenAbschreibung.value = "";
-    return;
-  }
-
-
-  maState.betrag = betrag;
-  maState.rest = MA_MAX;
-  maState.max = MA_MAX; // merken für Anzeige & Rechnen
-  saveMaschinenAbschreibung(maState);
-// 🔒 Feld SOFORT sperren (kein 1× Nachändern mehr)
-el.maschinenAbschreibung.disabled = true;
-}
-// Abschreibung aktiv
-if (maState.rest > 0){
-  maProDruck = maState.betrag / maState.max;
-}
-
-  const result = calculateCosts({
-    plaPreis: val("plaPreis"),
-    leistung: val("leistung"),
-    strompreis: val("strompreis"),
-    verschleiss: val("verschleiss"),
-    fehlerProzent: val("fehlerProzent"),
-    wartung: val("wartung"),
-    material: val("material"),
-    maschinenAbschreibungProDruck: maProDruck,
-    minuten: t.minutes
-  });
-
-  renderResults(result);
-}
-
-/* ---------- Save / Load ---------- */
-function save(){
-  const d = {};
-  inputs.forEach(i => d[i.id] = i.value);
-  d.time = new Date().toISOString();
-
-  localStorage.setItem(KEY, JSON.stringify(d));
-
-  const t = new Date(d.time);
-  lastChange.textContent =
-    "Letzte Aenderung: " +
-    t.toLocaleDateString("de-DE") + " " +
-    t.toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
-}
-
-function load(){
-  inputs.forEach(i => {
-    if (DEFAULTS[i.id] !== undefined){
-      i.step = stepFromValue(DEFAULTS[i.id]);
-    }
-  });
-
-  const d = JSON.parse(localStorage.getItem(KEY)) || {};
-  let changed = false;
-
-  inputs.forEach(i => {
-    if (d[i.id] !== undefined){
-      i.value = d[i.id];
-    } else if (DEFAULTS[i.id] !== undefined){
-      i.value = DEFAULTS[i.id];
-      d[i.id] = DEFAULTS[i.id];
-      changed = true;
-    }
-  });
-
-  if (changed){
-    d.time = new Date().toISOString();
-    localStorage.setItem(KEY, JSON.stringify(d));
-  }
-
-  if (d.time){
-    const t = new Date(d.time);
-    lastChange.textContent =
-      "Letzte Aenderung: " +
-      t.toLocaleDateString("de-DE") + " " +
-      t.toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
-  }
-
-  calc();
-}
-
-/* ---------- Reset ---------- */
-function resetToDefaults(confirmUser = true){
-  if (confirmUser && !confirm("Standardwerte wiederherstellen?")) return;
-
-  Object.keys(DEFAULTS).forEach(id => {
-    el[id].value = DEFAULTS[id];
-  });
-
-  save();
-  results.classList.remove("visible");
-      
-  // 🔧 FIX: laufende Abschreibung optisch erhalten
-  const maState = loadMaschinenAbschreibung();
-  if (maState.rest > 0){
-    el.maschinenAbschreibung.value = maState.betrag;
-    el.maschinenAbschreibung.disabled = true;
-  }
-}
-
-/* ---------- Input Handling (throttled) ---------- */
-let timer;
-function scheduleCalc(){
-  clearTimeout(timer);
-  timer = setTimeout(() => {
-    save();
-    calc();
-  }, 50);
-}
-
-inputs.forEach(i => {
-  if (i.id !== "maschinenAbschreibung"){
-    i.addEventListener("input", scheduleCalc);
-  }
-});
-
-el.maschinenAbschreibung.addEventListener("change", () => {
-  maUserTriggered = true;
-  save();
-  calc();
-});
-
-/* ---------- Clipboard ---------- */
-async function shareMessage(){
-  if (!results.classList.contains("visible")) return;
-
-  let maState = loadMaschinenAbschreibung();
-
-  if (maState.rest > 0){
-    maState.rest--;
-
-    if (maState.rest <= 0){
-      // Abschreibung nach dem 50. Druck vollständig beendet
-      localStorage.removeItem(MA_KEY);
-      el.maschinenAbschreibung.value = "";
-      el.maschinenAbschreibung.disabled = false;
-    } else {
-      saveMaschinenAbschreibung(maState);
-    }
-  }
-
-  // Neu berechnen nach dem Zählen
-  calc();
-
-  const text =
-`🖨️ 3D-Druck Kosten
+    <div class="container">
+
+        <div class="card top">
+            <ul>
+                <li><label>Filament Euro/kg</label>
+                    <div class="input-wrap"><input id="plaPreis" type="number" min="0"></div>
+                </li>
+                <li><label>Leistung (W) Durchschnitt</label>
+                    <div class="input-wrap"><input id="leistung" type="number" min="0"></div>
+                </li>
+                <li><label>Strom Euro/kWh</label>
+                    <div class="input-wrap"><input id="strompreis" type="number" min="0"></div>
+                </li>
+                <li><label>Verschleiss Euro/h</label>
+                    <div class="input-wrap"><input id="verschleiss" type="number" min="0"></div>
+                </li>
+                <li><label>Fehldruck-Puffer Prozent</label>
+                    <div class="input-wrap"><input id="fehlerProzent" type="number" min="0"></div>
+                </li>
+                <li><label>Wartung und Pflege Euro/h</label>
+                    <div class="input-wrap"><input id="wartung" type="number" min="0"></div>
+                </li>
+                <li>
+                    <label>Maschinenabschreibung<br> in Euro (einmalig)</label>
+                    <div class="input-wrap">
+                        <input id="maschinenAbschreibung" type="number" min="0">
+                    </div>
+                </li>
+                <div id="maInfo" style="text-align:center;font-size:13px;opacity:.7"></div>
+                <li>
+                    <label>Druckzeit</label>
+                    <div class="input-wrap time-inputs" min="0">
+                        <input id="druckzeitStunden" type="number" placeholder="h" min="0">
+                        <input id="druckzeitMinuten" type="number" placeholder="min" min="0">
+                    </div>
+                </li>
+
+                <li><label>Material (g)</label>
+                    <div class="input-wrap"><input id="material" type="number" min="0"></div>
+                </li>
+            </ul>
+
+            <button onclick="resetToDefaults()">🔄 Standardwerte wiederherstellen</button>
+            <button onclick="toggleInfo()">ℹ️ Wie wird gerechnet?</button>
+        </div>
+
+        <!-- Info Box -->
+        <div class="card results" id="infoBox">
+            <div class="results-list" style="font-size:14px;text-align:left">
+                <strong>Wie wird gerechnet?</strong><br><br>
+
+                <strong>Materialkosten</strong><br>
+                (Material in g / 1000) × Filamentpreis (Euro pro kg)<br><br>
+
+                <strong>Fehldruck-Puffer</strong><br>
+                (Materialkosten + Verschleißkosten)<br>
+                × (Fehldruck-Puffer in Prozent / 100)<br><br>
+
+                Der Fehldruck-Puffer berücksichtigt neben dem verbrauchten Material
+                auch den zusätzlichen Verschleiß durch fehlgeschlagene Drucke.<br><br>
+
+
+                <strong>Stromkosten</strong><br>
+                (Leistung in Watt / 1000) × Druckzeit in Stunden × Strompreis (Euro pro kWh)<br>
+                <em>Die angegebene Leistung ist der durchschnittliche Wert über die gesamte Druckzeit (inklusive
+                    Aufheizen).</em><br><br>
+
+                <strong>Verschleisskosten</strong><br>
+                Druckzeit in Stunden × Verschleisskosten (Euro pro Stunde)<br><br>
+
+                <strong>Wartung und Pflege</strong><br>
+                Druckzeit in Stunden × Wartungskosten (Euro pro Stunde)<br><br>
+
+                <strong>Gesamtkosten</strong><br>
+                Summe aus Material, Fehldruck-Puffer, Strom, Verschleiss sowie Wartung,<br> 
+                Pflege und ggf. Maschinenabschreibung.<br><br>
+
+                <strong>Maschinenabschreibung (Hybrid-Modell)</strong><br>
+                Kombination aus Zeitwert und Materialdurchsatz:<br>
+                • 70% der Abschreibung über 2000 Betriebsstunden<br>
+                • 30% der Abschreibung über 500 kg Material<br><br>
+
+                <em>Dieser Rechner dient ausschliesslich zur Kostendeckung.<br>
+                    Es wird kein Gewinn berechnet.</em>
+            </div>
+        </div>
+
+        <!-- Ergebnisse -->
+        <div class="card results" id="results">
+            <div class="results-list">
+                <div>Material: <span id="mk">0.00</span> Euro</div>
+                <div>Fehldruck-Puffer: <span id="fk">0.00</span> Euro</div>
+                <div>Strom: <span id="sk">0.00</span> Euro</div>
+                <div>Verschleiss: <span id="vk">0.00</span> Euro</div>
+                <div>Wartung und Pflege: <span id="wk">0.00</span> Euro</div>
+                <div id="maRow" style="display:none;text-align:center;">
+                    Maschinenabschreibung: <span id="ma">0.00</span> Euro
+                </div>
+
+            </div>
+
+            <div class="results-total">
+                Gesamt: <span id="gesamt">0.00</span> Euro
+            </div>
+
+            <div class="results-hour">
+                ≈ <span id="proStunde">0.00</span> Euro / h (Durchschnitt)
+            </div>
+            <button onclick="shareMessage()">📤 Ergebnis teilen</button>
+            <div id="shareHint" style="margin-top:6px;text-align:center;font-size:12px;opacity:.6;">
+                Hinweis: Wenn enthalten, wird „Ergebnis teilen“ als eine Abschreibung gezählt.
+            </div>
+        </div>
+        <div class="footer" id="lastChange"></div>
+        <script>
+            /* ==========================================
+               3D-Druck Kostenrechner – HYBRID MODEL
+               ========================================== */
+
+            const KEY = "druckkosten_state";
+            // Hybrid Model Constants
+            const MACHINE_KEY = "machine_cycle_v2";
+            const LIFE_HOURS = 2000;
+            const LIFE_KG = 500;
+            const HISTORY_SIZE = 3;
+
+            /* ---------- Defaults ---------- */
+            const DEFAULTS = {
+                plaPreis: 20,
+                leistung: 95,
+                strompreis: 0.40,
+                verschleiss: 0.07,
+                fehlerProzent: 7,
+                wartung: 0.05,
+                druckzeitStunden: "",
+                druckzeitMinuten: "",
+                material: "",
+                maschinenAbschreibung: ""
+            };
+
+            /* ---------- DOM Cache ---------- */
+            const inputs = document.querySelectorAll("input");
+            const results = document.getElementById("results");
+            const infoBox = document.getElementById("infoBox");
+            const lastChange = document.getElementById("lastChange");
+            const maInfo = document.getElementById("maInfo");
+            const maRow = document.getElementById("maRow");
+            const ma = document.getElementById("ma");
+            const mk = document.getElementById("mk");
+            const fk = document.getElementById("fk");
+            const sk = document.getElementById("sk");
+            const vk = document.getElementById("vk");
+            const wk = document.getElementById("wk");
+            const gesamt = document.getElementById("gesamt");
+            const proStunde = document.getElementById("proStunde");
+
+
+            const el = {};
+            inputs.forEach(i => el[i.id] = i);
+
+            // Current Machine State
+            let machineState = {
+                price: 0,
+                paid: 0,
+                history: [], // Array of costPerPrint
+                isActive: false
+            };
+
+            /* ---------- Utils ---------- */
+            function stepFromValue(val) {
+                if (typeof val !== "number") return 1;
+                const s = String(val);
+                return s.includes(".") ? Math.pow(10, -s.split(".")[1].length) : 1;
+            }
+
+            function val(id) {
+                const v = parseFloat(el[id].value);
+                return Number.isFinite(v) ? Math.max(0, v) : 0;
+            }
+
+            function normalizeTime(h, m) {
+                let minutes = h * 60 + m;
+                if (minutes < 0) minutes = 0;
+                if (minutes > 48 * 60) minutes = 48 * 60;
+                return {
+                    h: Math.floor(minutes / 60),
+                    m: minutes % 60,
+                    minutes
+                };
+            }
+
+            function toggleInfo() {
+                infoBox.classList.toggle("visible");
+            }
+
+            /* ---------- Hybrid Calculation Logic ---------- */
+            function calcHybridDepreciation(price, hours, kg) {
+                if (price <= 0) return 0;
+                // 70% Time, 30% Material
+                const partTime = price * 0.7;
+                const partMat = price * 0.3;
+
+                const costTime = (partTime / LIFE_HOURS) * hours;
+                const costMat = (partMat / LIFE_KG) * kg;
+
+                return costTime + costMat;
+            }
+
+            /* ---------- Main Calculation ---------- */
+            function calculateCosts(data) {
+                const {
+                    plaPreis, leistung, strompreis,
+                    verschleiss, fehlerProzent,
+                    wartung, material, minuten,
+                    maCost
+                } = data;
+
+                const hrs = minuten / 60;
+                const materialKosten = (material / 1000) * plaPreis;
+                const verschKosten = hrs * verschleiss;
+                const wartKosten = hrs * wartung;
+                const fehlerKosten = (materialKosten + verschKosten) * (fehlerProzent / 100);
+                const stromKosten = (leistung / 1000) * hrs * strompreis;
+
+                const gesamt =
+                    materialKosten +
+                    fehlerKosten +
+                    stromKosten +
+                    verschKosten +
+                    wartKosten +
+                    maCost;
+
+                return {
+                    materialKosten,
+                    fehlerKosten,
+                    stromKosten,
+                    verschKosten,
+                    wartKosten,
+                    maCost,
+                    gesamt,
+                    proStunde: hrs > 0 ? gesamt / hrs : 0
+                };
+            }
+
+            function calc() {
+                const t = normalizeTime(val("druckzeitStunden"), val("druckzeitMinuten"));
+                const stunden = t.minutes / 60;
+                const materialGramm = val("material");
+                const materialKg = materialGramm / 1000;
+
+                // Machine Logic
+                // Use stored price if active, otherwise current input
+                let currentPrice = machineState.isActive ? machineState.price : val("maschinenAbschreibung");
+
+                const maCost = calcHybridDepreciation(currentPrice, stunden, materialKg);
+
+                // Update UI Inputs
+                el.druckzeitStunden.value = t.h || "";
+                el.druckzeitMinuten.value = t.m || "";
+
+                // UI Locking & Info
+                updateMachineUI(currentPrice);
+
+                // Validation for Results
+                if (t.minutes <= 0 || val("material") <= 0 || val("plaPreis") <= 0) {
+                    results.classList.remove("visible");
+                    return;
+                }
+
+                const result = calculateCosts({
+                    plaPreis: val("plaPreis"),
+                    leistung: val("leistung"),
+                    strompreis: val("strompreis"),
+                    verschleiss: val("verschleiss"),
+                    fehlerProzent: val("fehlerProzent"),
+                    wartung: val("wartung"),
+                    material: val("material"),
+                    minuten: t.minutes,
+                    maCost: maCost
+                });
+
+                renderResults(result);
+            }
+
+            function updateMachineUI(currentPrice) {
+                // Lock input if active
+                if (machineState.isActive) {
+                    el.maschinenAbschreibung.value = machineState.price;
+                    el.maschinenAbschreibung.disabled = true;
+
+                    if (machineState.paid >= machineState.price) {
+                        maInfo.textContent = "Abschreibung abgeschlossen! Ihre Maschine ist refinanziert. ✅";
+                        maInfo.style.display = "block";
+                        el.maschinenAbschreibung.disabled = false; // Allow new machine?
+                        // User said: "cannot be changed UNTIL finished". So now it can be changed.
+                    } else {
+                        // Prognosis
+                        if (machineState.history.length >= 3) {
+                            const avg = machineState.history.reduce((a, b) => a + b, 0) / machineState.history.length;
+                            if (avg > 0) {
+                                const remaining = machineState.price - machineState.paid;
+                                const printsLeft = Math.ceil(remaining / avg);
+                                maInfo.textContent = `Abschreibung voraussichtlich in ${printsLeft} Drucken fertig.`;
+                                maInfo.style.display = "block";
+                            }
+                        } else {
+                            maInfo.textContent = `Prognose nach 3 Drucken verfügbar (${machineState.history.length}/3)`;
+                            maInfo.style.display = "block";
+                        }
+                    }
+                } else {
+                    // Not active
+                    el.maschinenAbschreibung.disabled = false;
+                    if (val("maschinenAbschreibung") > 0) {
+                        maInfo.textContent = "Geben Sie einen Wert ein und teilen Sie das erste Ergebnis, um die Abschreibung zu starten.";
+                        maInfo.style.display = "block";
+                    } else {
+                        maInfo.style.display = "none";
+                    }
+                }
+            }
+
+            function renderResults(r) {
+                mk.textContent = r.materialKosten.toFixed(2);
+                fk.textContent = r.fehlerKosten.toFixed(2);
+                sk.textContent = r.stromKosten.toFixed(2);
+                vk.textContent = r.verschKosten.toFixed(2);
+                wk.textContent = r.wartKosten.toFixed(2);
+                gesamt.textContent = r.gesamt.toFixed(2);
+                proStunde.textContent = r.proStunde.toFixed(2);
+
+                results.classList.add("visible");
+
+                const hasMA = r.maCost > 0;
+                ma.textContent = r.maCost.toFixed(2);
+                maRow.style.display = hasMA ? "block" : "none";
+            }
+
+            /* ---------- State Management ---------- */
+            function loadMachineState() {
+                const s = localStorage.getItem(MACHINE_KEY);
+                if (s) {
+                    machineState = JSON.parse(s);
+                }
+            }
+
+            function saveMachineState() {
+                localStorage.setItem(MACHINE_KEY, JSON.stringify(machineState));
+            }
+
+            function bookPrint(cost) {
+                // Only book if we have a machine price
+                // We check if "maschinenAbschreibung" has a value or if we are already active
+
+                if (!machineState.isActive) {
+                    const p = val("maschinenAbschreibung");
+                    if (p > 0) {
+                        machineState.price = p;
+                        machineState.isActive = true;
+                        machineState.paid = 0;
+                        machineState.history = [];
+                    }
+                }
+
+                if (machineState.isActive) {
+                    machineState.paid += cost;
+                    machineState.history.push(cost);
+                    if (machineState.history.length > HISTORY_SIZE) {
+                        machineState.history.shift();
+                    }
+                    saveMachineState();
+                    updateMachineUI(machineState.price);
+
+                    // If finished
+                    if (machineState.paid >= machineState.price) {
+                        alert("Abschreibung erfolgreich beendet! 🥳\nIhre Maschine ist refinanziert.\nDas Eingabefeld wird nun für eine neue Maschine geleert.");
+
+                        // Reset State
+                        machineState.price = 0;
+                        machineState.paid = 0;
+                        machineState.history = [];
+                        machineState.isActive = false;
+
+                        // Clear Input
+                        el.maschinenAbschreibung.value = "";
+                        el.maschinenAbschreibung.disabled = false;
+
+                        saveMachineState();
+                        // Update UI will hide the info because price is 0
+                        updateMachineUI(0);
+                    }
+                }
+            }
+
+            /* ---------- Share / Book ---------- */
+            async function shareMessage() {
+                if (!results.classList.contains("visible")) return;
+
+                // Recalculate to get current values
+                const t = normalizeTime(val("druckzeitStunden"), val("druckzeitMinuten"));
+                const stunden = t.minutes / 60;
+                const matKg = val("material") / 1000;
+                const currentPrice = machineState.isActive ? machineState.price : val("maschinenAbschreibung");
+
+                // Calculate Cost
+                const maCost = calcHybridDepreciation(currentPrice, stunden, matKg);
+
+                // BOOK IT!
+                if (maCost > 0) {
+                    bookPrint(maCost);
+                    calc();
+                }
+
+                const text =
+                    `🖨️ 3D-Druck Kosten
 
 💰 Gesamt: ${gesamt.textContent} €
 ⏱️ Ø ${proStunde.textContent} € / h`;
 
-  const shareData = {
-    title: "3D-Druck Kosten",
-    text
-  };
+                const shareData = {
+                    title: "3D-Druck Kosten",
+                    text
+                };
 
-  if (navigator.share && navigator.canShare(shareData)) {
-    try {
-      await navigator.share(shareData);
-    } catch {}
-  } else {
-    try {
-      await navigator.clipboard.writeText(text);
-      alert("Teilen nicht unterstützt – Text wurde kopiert ✅");
-    } catch {
-      alert("Teilen leider nicht möglich ❌");
-    }
-  }
-}
-/* ---------- Init ---------- */
-load();
+                if (navigator.share && navigator.canShare(shareData)) {
+                    try { await navigator.share(shareData); } catch { }
+                } else {
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        alert("Teilen nicht unterstützt – Text wurde kopiert ✅\n(Abschreibung wurde gebucht)");
+                    } catch {
+                        alert("Teilen leider nicht möglich ❌");
+                    }
+                }
+            }
 
-if ("serviceWorker" in navigator){
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("service-worker.js");
-  });
-}
-</script>
+            /* ---------- Save / Load General ---------- */
+            function save() {
+                const d = {};
+                inputs.forEach(i => d[i.id] = i.value);
+                d.time = new Date().toISOString();
+                localStorage.setItem(KEY, JSON.stringify(d));
+
+                const t = new Date(d.time);
+                lastChange.textContent = "Letzte Aenderung: " + t.toLocaleDateString("de-DE") + " " + t.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+            }
+
+            function load() {
+                inputs.forEach(i => {
+                    if (DEFAULTS[i.id] !== undefined) i.step = stepFromValue(DEFAULTS[i.id]);
+                });
+
+                const d = JSON.parse(localStorage.getItem(KEY)) || {};
+                inputs.forEach(i => {
+                    if (d[i.id] !== undefined) i.value = d[i.id];
+                });
+
+                if (d.time) {
+                    const t = new Date(d.time);
+                    lastChange.textContent = "Letzte Aenderung: " + t.toLocaleDateString("de-DE") + " " + t.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+                }
+
+                loadMachineState();
+                calc();
+            }
+
+            function resetToDefaults(confirmUser = true) {
+                if (confirmUser && !confirm("Standardwerte wiederherstellen?")) return;
+                Object.keys(DEFAULTS).forEach(id => el[id].value = DEFAULTS[id]);
+                save();
+                results.classList.remove("visible");
+            }
+
+            /* ---------- Events ---------- */
+            let timer;
+            function scheduleCalc() {
+                clearTimeout(timer);
+                timer = setTimeout(() => { save(); calc(); }, 50);
+            }
+
+            inputs.forEach(i => {
+                i.addEventListener("input", scheduleCalc);
+            });
+
+            el.maschinenAbschreibung.addEventListener("change", () => {
+                // If unlocked (new machine), clear old state?
+                if (!machineState.isActive) {
+                    machineState.history = [];
+                    machineState.paid = 0;
+                    saveMachineState();
+                    calc();
+                }
+            });
+
+            /* ---------- Init ---------- */
+            load();
+
+            if ("serviceWorker" in navigator) {
+                window.addEventListener("load", () => {
+                    navigator.serviceWorker.register("service-worker.js");
+                });
+            }
+        </script>
 </body>
+
 </html>
